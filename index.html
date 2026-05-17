@@ -375,7 +375,8 @@ function PlanCanvas(_ref4) {
     zoom = _ref4.zoom,
     drawMode = _ref4.drawMode,
     drawnCells = _ref4.drawnCells,
-    setDrawnCells = _ref4.setDrawnCells;
+    setDrawnCells = _ref4.setDrawnCells,
+    onManualPlace = _ref4.onManualPlace;
   var canvasRef = useRef(null);
   var drawingRef = useRef(false);
   var containerRef = useRef(null);
@@ -663,7 +664,7 @@ function PlanCanvas(_ref4) {
         if (!activeCells.some(function (c) {
           return c.x === gx && c.y === gy;
         })) return prev;
-        setIsAutoPlaced(false);
+        if (onManualPlace) onManualPlace();
         return [].concat(_toConsumableArray(prev), [snap]);
       });
     }
@@ -1501,7 +1502,10 @@ function App() {
     zoom: zoom,
     drawMode: drawMode,
     drawnCells: drawnCells,
-    setDrawnCells: setDrawnCells
+    setDrawnCells: setDrawnCells,
+    onManualPlace: function onManualPlace() {
+      return setIsAutoPlaced(false);
+    }
   }),
   // Device list
   devices.length > 0 && React.createElement("div", {
