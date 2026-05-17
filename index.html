@@ -46,15 +46,15 @@ window.onerror=function(msg,src,line,col,err){
 "use strict";
 
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -95,7 +95,8 @@ var F = "'Inter','Segoe UI',system-ui,sans-serif";
 var REACH_DEFAULT = 14,
   REACH_MIN = 12,
   REACH_MAX = 16;
-var MARGIN_M = 3; // extra metres around building+reach on canvas
+var MARGIN_M = 4; // extra metres around building+reach on canvas
+var DRAW_GRID_M = 62; // default drawing grid size in metres
 
 // ─── CLAUDE LOGO SVG ──────────────────────────────────────────────────────────
 var ClaudeLogo = function ClaudeLogo(_ref) {
@@ -128,6 +129,54 @@ var ClaudeLogo = function ClaudeLogo(_ref) {
   })))));
 };
 
+// Flood-fill: fill interior cells of drawn shape
+function floodFillInterior(cells) {
+  if (!cells.length) return cells;
+  var maxX = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
+    return c.x;
+  }))) + 1;
+  var maxY = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
+    return c.y;
+  }))) + 1;
+  var set = new Set(cells.map(function (c) {
+    return "".concat(c.x, ",").concat(c.y);
+  }));
+  // BFS from (−1,−1) to find all exterior cells within extended bounding box
+  var ext = new Set();
+  var queue = [[-1, -1]];
+  ext.add("-1,-1");
+  var _loop = function _loop() {
+    var _queue$shift = queue.shift(),
+      _queue$shift2 = _slicedToArray(_queue$shift, 2),
+      x = _queue$shift2[0],
+      y = _queue$shift2[1];
+    [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (_ref2) {
+      var _ref3 = _slicedToArray(_ref2, 2),
+        dx = _ref3[0],
+        dy = _ref3[1];
+      var nx = x + dx,
+        ny = y + dy;
+      var key = "".concat(nx, ",").concat(ny);
+      if (nx >= -1 && nx <= maxX && ny >= -1 && ny <= maxY && !ext.has(key) && !set.has(key)) {
+        ext.add(key);
+        queue.push([nx, ny]);
+      }
+    });
+  };
+  while (queue.length) {
+    _loop();
+  }
+  // All cells inside bounding box that are not exterior = interior to fill
+  var filled = _toConsumableArray(cells);
+  for (var y = 0; y <= maxY; y++) for (var x = 0; x <= maxX; x++) {
+    var key = "".concat(x, ",").concat(y);
+    if (!ext.has(key) && !set.has(key)) filled.push({
+      x: x,
+      y: y
+    });
+  }
+  return filled;
+}
 // ─── ANALYTICAL PLACEMENT ALGORITHM ──────────────────────────────────────────
 // Find minimum nx×ny grid such that half-diagonal of each sub-rect ≤ reach
 function optimalGrid(W, H, reach) {
@@ -179,26 +228,76 @@ function getBuildingCells(shape) {
   return cells;
 }
 
+// Dense-grid greedy: try candidate positions every 1m over bounding box
+function denseGreedy(cells, reach) {
+  if (!cells.length) return [];
+  var maxX = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
+    return c.x;
+  }))) + 1;
+  var maxY = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
+    return c.y;
+  }))) + 1;
+  var cellSet = new Set(cells.map(function (c) {
+    return "".concat(c.x, ",").concat(c.y);
+  }));
+  // Generate candidates every 1m
+  var cands = [];
+  for (var cx = 0.5; cx <= maxX; cx += 1) for (var cy = 0.5; cy <= maxY; cy += 1) cands.push({
+    x: cx,
+    y: cy
+  });
+  // Greedy selection
+  var uncov = new Set(cells.map(function (_, i) {
+    return i;
+  }));
+  var devs = [];
+  var iter = 0;
+  var _loop2 = function _loop2() {
+    iter++;
+    var best = null,
+      bestScore = 0;
+    var _loop3 = function _loop3() {
+      var c = _cands[_i];
+      var score = 0;
+      uncov.forEach(function (j) {
+        var dx = cells[j].x + .5 - c.x,
+          dy = cells[j].y + .5 - c.y;
+        if (dx * dx + dy * dy <= reach * reach) score++;
+      });
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
+    };
+    for (var _i = 0, _cands = cands; _i < _cands.length; _i++) {
+      _loop3();
+    }
+    if (!best) {
+      var j = _toConsumableArray(uncov)[0];
+      best = {
+        x: cells[j].x + .5,
+        y: cells[j].y + .5
+      };
+    }
+    devs.push(best);
+    _toConsumableArray(uncov).forEach(function (j) {
+      var dx = cells[j].x + .5 - best.x,
+        dy = cells[j].y + .5 - best.y;
+      if (dx * dx + dy * dy <= reach * reach) uncov.delete(j);
+    });
+  };
+  while (uncov.size > 0 && iter < 200) {
+    _loop2();
+  }
+  return devs;
+}
 // Auto-place for rectangles and L-shapes analytically
 function autoPlaceDevices(shape, reach) {
   if (shape.type === "rect") {
     return optimalGrid(shape.w, shape.h, reach);
   } else if (shape.type === "L") {
-    // Split L into 2 rectangles
-    var W = shape.w,
-      H = shape.h,
-      cx = shape.cx,
-      cy = shape.cy;
-    // Bottom rectangle: full width × (H-cy)
-    var devA = optimalGrid(W, H - cy, reach).map(function (d) {
-      return {
-        x: d.x,
-        y: d.y + cy
-      };
-    });
-    // Top-left rectangle: (W-cx) × cy
-    var devB = optimalGrid(W - cx, cy, reach);
-    return [].concat(_toConsumableArray(devA), _toConsumableArray(devB));
+    // Use dense-grid greedy on full L-shape for best results
+    return denseGreedy(getBuildingCells(shape), reach);
   } else if (shape.type === "draw") {
     // Greedy for custom shapes
     var cells = shape.cells;
@@ -208,7 +307,7 @@ function autoPlaceDevices(shape, reach) {
     }));
     var devs = [];
     var iter = 0;
-    var _loop = function _loop() {
+    var _loop4 = function _loop4() {
       iter++;
       var best = null,
         bestCount = 0;
@@ -247,7 +346,7 @@ function autoPlaceDevices(shape, reach) {
       });
     };
     while (uncov.size > 0 && iter < 100) {
-      _loop();
+      _loop4();
     }
     return devs;
   }
@@ -268,15 +367,15 @@ function calcCoverage(cells, devices, reach) {
 }
 
 // ─── CANVAS RENDERER ──────────────────────────────────────────────────────────
-function PlanCanvas(_ref2) {
-  var shape = _ref2.shape,
-    devices = _ref2.devices,
-    setDevices = _ref2.setDevices,
-    reach = _ref2.reach,
-    zoom = _ref2.zoom,
-    drawMode = _ref2.drawMode,
-    drawnCells = _ref2.drawnCells,
-    setDrawnCells = _ref2.setDrawnCells;
+function PlanCanvas(_ref4) {
+  var shape = _ref4.shape,
+    devices = _ref4.devices,
+    setDevices = _ref4.setDevices,
+    reach = _ref4.reach,
+    zoom = _ref4.zoom,
+    drawMode = _ref4.drawMode,
+    drawnCells = _ref4.drawnCells,
+    setDrawnCells = _ref4.setDrawnCells;
   var canvasRef = useRef(null);
   var drawingRef = useRef(false);
   var containerRef = useRef(null);
@@ -302,17 +401,17 @@ function PlanCanvas(_ref2) {
   var cells = useMemo(function () {
     return getBuildingCells(shape);
   }, [shape, drawnCells]);
-  var bW = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray(drawnCells.map(function (c) {
+  var bW = shape.type === "draw" ? Math.max.apply(Math, [DRAW_GRID_M].concat(_toConsumableArray(drawnCells.map(function (c) {
     return c.x + 1;
   })))) : shape.w;
-  var bH = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray(drawnCells.map(function (c) {
+  var bH = shape.type === "draw" ? Math.max.apply(Math, [DRAW_GRID_M].concat(_toConsumableArray(drawnCells.map(function (c) {
     return c.y + 1;
   })))) : shape.h;
   var baseScale = useMemo(function () {
-    var worldW = bW + 2 * (reach + MARGIN_M);
-    var worldH = bH + 2 * (reach + MARGIN_M);
+    var worldW = shape.type === "draw" ? DRAW_GRID_M + 2 * MARGIN_M : bW + 2 * (reach + MARGIN_M);
+    var worldH = shape.type === "draw" ? DRAW_GRID_M + 2 * MARGIN_M : bH + 2 * (reach + MARGIN_M);
     return Math.min(canvasSize / worldW, canvasSize / worldH);
-  }, [bW, bH, reach, canvasSize]);
+  }, [bW, bH, reach, canvasSize, shape.type]);
   var scale = baseScale * zoom;
   // Always center the building in the canvas
   var offX = canvasSize / 2 - bW / 2 * scale;
@@ -391,10 +490,10 @@ function PlanCanvas(_ref2) {
         cy = shape.cy;
       ctx.beginPath();
       var pts = [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]];
-      pts.forEach(function (_ref3, i) {
-        var _ref4 = _slicedToArray(_ref3, 2),
-          x = _ref4[0],
-          y = _ref4[1];
+      pts.forEach(function (_ref5, i) {
+        var _ref6 = _slicedToArray(_ref5, 2),
+          x = _ref6[0],
+          y = _ref6[1];
         var _w2c5 = w2c(x, y),
           _w2c6 = _slicedToArray(_w2c5, 2),
           px = _w2c6[0],
@@ -564,6 +663,7 @@ function PlanCanvas(_ref2) {
         if (!activeCells.some(function (c) {
           return c.x === gx && c.y === gy;
         })) return prev;
+        setIsAutoPlaced(false);
         return [].concat(_toConsumableArray(prev), [snap]);
       });
     }
@@ -675,10 +775,10 @@ function exportPDF(shape, devices, reach, customerName, customerCity, notes, flo
       cx = shape.cx,
       cy = shape.cy;
     ctx.beginPath();
-    [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]].forEach(function (_ref5, i) {
-      var _ref6 = _slicedToArray(_ref5, 2),
-        x = _ref6[0],
-        y = _ref6[1];
+    [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]].forEach(function (_ref7, i) {
+      var _ref8 = _slicedToArray(_ref7, 2),
+        x = _ref8[0],
+        y = _ref8[1];
       i === 0 ? ctx.moveTo(ox + x * sc, oy + y * sc) : ctx.lineTo(ox + x * sc, oy + y * sc);
     });
     ctx.closePath();
@@ -779,39 +879,47 @@ function exportPDF(shape, devices, reach, customerName, customerCity, notes, flo
 }
 
 // ─── SHAPE PANEL ─────────────────────────────────────────────────────────────
-function ShapePanel(_ref7) {
+function ShapePanel(_ref9) {
   var _React3;
-  var shape = _ref7.shape,
-    onApply = _ref7.onApply;
+  var shape = _ref9.shape,
+    onApply = _ref9.onApply;
   var _useState3 = useState(shape.type === "L" ? "L" : "rect"),
     _useState4 = _slicedToArray(_useState3, 2),
     preset = _useState4[0],
     setPreset = _useState4[1];
   var _useState5 = useState({
-      w: 12,
-      h: 8,
-      cx: 5,
-      cy: 4
+      w: "12",
+      h: "8",
+      cx: "5",
+      cy: "4"
     }),
     _useState6 = _slicedToArray(_useState5, 2),
     dims = _useState6[0],
     setDims = _useState6[1];
-  var set = function set(k, v) {
+  var setStr = function setStr(k, v) {
     return setDims(function (d) {
-      return _objectSpread(_objectSpread({}, d), {}, _defineProperty({}, k, Math.max(1, parseInt(v) || 1)));
+      return _objectSpread(_objectSpread({}, d), {}, _defineProperty({}, k, v.replace(/[^0-9]/g, '')));
     });
+  };
+  var blurFix = function blurFix(k) {
+    return setDims(function (d) {
+      return _objectSpread(_objectSpread({}, d), {}, _defineProperty({}, k, String(Math.max(1, parseInt(d[k]) || 1))));
+    });
+  };
+  var getN = function getN(k) {
+    return Math.max(1, parseInt(dims[k]) || 1);
   };
   var apply = function apply() {
     if (preset === "rect") onApply({
       type: "rect",
-      w: dims.w,
-      h: dims.h
+      w: getN("w"),
+      h: getN("h")
     });else if (preset === "L") onApply({
       type: "L",
-      w: dims.w,
-      h: dims.h,
-      cx: Math.min(dims.cx, dims.w - 1),
-      cy: Math.min(dims.cy, dims.h - 1)
+      w: getN("w"),
+      h: getN("h"),
+      cx: Math.min(getN("cx"), getN("w") - 1),
+      cy: Math.min(getN("cy"), getN("h") - 1)
     });else onApply({
       type: "draw",
       cells: []
@@ -895,8 +1003,10 @@ function ShapePanel(_ref7) {
       return e.target.select();
     },
     onChange: function onChange(e) {
-      var v = parseInt(e.target.value.replace(/\D/g, '')) || 1;
-      set("w", Math.min(200, v));
+      return setStr("w", e.target.value);
+    },
+    onBlur: function onBlur() {
+      return blurFix("w");
     }
   })), React.createElement("div", null, React.createElement("span", {
     style: lbl
@@ -909,8 +1019,10 @@ function ShapePanel(_ref7) {
       return e.target.select();
     },
     onChange: function onChange(e) {
-      var v = parseInt(e.target.value.replace(/\D/g, '')) || 1;
-      set("h", Math.min(200, v));
+      return setStr("h", e.target.value);
+    },
+    onBlur: function onBlur() {
+      return blurFix("h");
     }
   }))), preset === "L" && (_React3 = React).createElement.apply(_React3, ["div", {
     style: {
@@ -919,10 +1031,10 @@ function ShapePanel(_ref7) {
       flexWrap: "wrap",
       alignItems: "flex-end"
     }
-  }].concat(_toConsumableArray([["w", "Délka (m)"], ["h", "Šířka (m)"], ["cx", "Výřez šírka"], ["cy", "Výřez výška"]].map(function (_ref8) {
-    var _ref9 = _slicedToArray(_ref8, 2),
-      k = _ref9[0],
-      label = _ref9[1];
+  }].concat(_toConsumableArray([["w", "Délka (m)"], ["h", "Šířka (m)"], ["cx", "Výřez šírka"], ["cy", "Výřez výška"]].map(function (_ref0) {
+    var _ref1 = _slicedToArray(_ref0, 2),
+      k = _ref1[0],
+      label = _ref1[1];
     return React.createElement("div", {
       key: k
     }, React.createElement("span", {
@@ -936,8 +1048,10 @@ function ShapePanel(_ref7) {
         return e.target.select();
       },
       onChange: function onChange(e) {
-        var v = parseInt(e.target.value.replace(/\D/g, '')) || 1;
-        set(k, Math.min(200, v));
+        return setStr(k, e.target.value);
+      },
+      onBlur: function onBlur() {
+        return blurFix(k);
       }
     }));
   })))), preset === "draw" && React.createElement("div", {
@@ -991,28 +1105,33 @@ function App() {
     _useState14 = _slicedToArray(_useState13, 2),
     drawMode = _useState14[0],
     setDrawMode = _useState14[1];
-  var _useState15 = useState([]),
+  var _useState15 = useState(false),
     _useState16 = _slicedToArray(_useState15, 2),
-    drawnCells = _useState16[0],
-    setDrawnCells = _useState16[1];
-  var _useState17 = useState("plan"),
+    isAutoPlaced = _useState16[0],
+    setIsAutoPlaced = _useState16[1];
+  var _useState17 = useState([]),
     _useState18 = _slicedToArray(_useState17, 2),
-    tab = _useState18[0],
-    setTab = _useState18[1];
-  var _useState19 = useState({
+    drawnCells = _useState18[0],
+    setDrawnCells = _useState18[1];
+  var _useState19 = useState("plan"),
+    _useState20 = _slicedToArray(_useState19, 2),
+    tab = _useState20[0],
+    setTab = _useState20[1];
+  var _useState21 = useState({
       name: "",
       city: "",
       notes: "",
       floors: 1
     }),
-    _useState20 = _slicedToArray(_useState19, 2),
-    customer = _useState20[0],
-    setCustomer = _useState20[1];
+    _useState22 = _slicedToArray(_useState21, 2),
+    customer = _useState22[0],
+    setCustomer = _useState22[1];
   var setCust = function setCust(k, v) {
     return setCustomer(function (c) {
       return _objectSpread(_objectSpread({}, c), {}, _defineProperty({}, k, v));
     });
   };
+  var custFilled = !!(customer.name.trim() || customer.city.trim());
   var cells = useMemo(function () {
     return getBuildingCells(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
@@ -1029,9 +1148,10 @@ function App() {
     setDrawMode(false);
   };
   var handleAuto = function handleAuto() {
-    return setDevices(autoPlaceDevices(_objectSpread(_objectSpread({}, shape), {}, {
+    setDevices(autoPlaceDevices(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
     }), reach));
+    setIsAutoPlaced(true);
   };
   var handlePDF = function handlePDF() {
     return exportPDF(_objectSpread(_objectSpread({}, shape), {}, {
@@ -1040,21 +1160,23 @@ function App() {
   };
   var covColor = coverage >= 100 ? C.greenBright : coverage >= 80 ? C.orange : C.danger;
   var tabBtn = function tabBtn(id, label) {
+    var isCust = id === "info";
+    var badge = isCust ? custFilled ? " 🟢" : " ❗" : "";
     return React.createElement("button", {
       onClick: function onClick() {
         return setTab(id);
       },
       style: {
-        padding: "8px 16px",
+        padding: "8px 14px",
         borderRadius: 7,
-        border: "none",
+        border: isCust && !custFilled ? "2px solid ".concat(C.orange) : "none",
         cursor: "pointer",
         fontSize: 13,
         background: tab === id ? C.green : C.surfaceAlt,
         color: tab === id ? "#fff" : C.textMid,
         fontWeight: tab === id ? 700 : 500
       }
-    }, label);
+    }, label + badge);
   };
   return React.createElement("div", {
     style: {
@@ -1145,10 +1267,10 @@ function App() {
     label: "Pokrytí",
     value: "".concat(coverage, " %"),
     color: covColor
-  }].map(function (_ref0) {
-    var label = _ref0.label,
-      value = _ref0.value,
-      color = _ref0.color;
+  }].map(function (_ref10) {
+    var label = _ref10.label,
+      value = _ref10.value,
+      color = _ref10.color;
     return React.createElement("div", {
       key: label,
       style: {
@@ -1238,13 +1360,14 @@ function App() {
       padding: "10px 12px",
       borderRadius: 7,
       border: "none",
-      background: C.green,
+      background: isAutoPlaced && devices.length > 0 ? C.green : C.brown,
       color: "#fff",
       fontSize: 13,
       fontWeight: 700,
-      cursor: "pointer"
+      cursor: "pointer",
+      opacity: !isAutoPlaced && devices.length > 0 ? 0.6 : 1
     }
-  }, "⚡ Automatický návrh"), shape.type === "draw" && React.createElement("button", {
+  }, isAutoPlaced && devices.length > 0 ? "⚡ Automatický návrh ✓" : "⚡ Automatický návrh"), shape.type === "draw" && React.createElement("button", {
     onClick: function onClick() {
       return setDrawMode(function (m) {
         return !m;
@@ -1262,6 +1385,22 @@ function App() {
       color: drawMode ? C.brownMid : C.textMid
     }
   }, drawMode ? "✏️ Kreslit: ZAP" : "✏️ Kreslit: VYP"), shape.type === "draw" && React.createElement("button", {
+    onClick: function onClick() {
+      return setDrawnCells(function (prev) {
+        return floodFillInterior(prev);
+      });
+    },
+    style: {
+      padding: "10px 10px",
+      borderRadius: 7,
+      fontSize: 12,
+      cursor: "pointer",
+      background: C.greenPale,
+      border: "1px solid ".concat(C.green),
+      color: C.green,
+      fontWeight: 600
+    }
+  }, "▦ Vyplnit"), shape.type === "draw" && React.createElement("button", {
     onClick: function onClick() {
       return setDrawnCells([]);
     },
@@ -1457,11 +1596,11 @@ function App() {
       textTransform: "uppercase",
       letterSpacing: ".5px"
     }
-  }, "Zákazník")].concat(_toConsumableArray([["name", "Jméno / Příjmení", "Novák Jan"], ["city", "Město / Adresa", "Trutnov, Nádražní 12"], ["notes", "Poznámka", "Sklep + přízemí, stáří budovy..."]].map(function (_ref1) {
-    var _ref10 = _slicedToArray(_ref1, 3),
-      k = _ref10[0],
-      label = _ref10[1],
-      ph = _ref10[2];
+  }, "Zákazník")].concat(_toConsumableArray([["name", "Jméno / Příjmení", "Novák Jan"], ["city", "Město / Adresa", "Trutnov, Nádražní 12"], ["notes", "Poznámka", "Sklep + přízemí, stáří budovy..."]].map(function (_ref11) {
+    var _ref12 = _slicedToArray(_ref11, 3),
+      k = _ref12[0],
+      label = _ref12[1],
+      ph = _ref12[2];
     return React.createElement("div", {
       key: k
     }, React.createElement("div", {
