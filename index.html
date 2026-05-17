@@ -131,11 +131,14 @@ var ClaudeLogo = function ClaudeLogo(_ref) {
 // ─── ANALYTICAL PLACEMENT ALGORITHM ──────────────────────────────────────────
 // Find minimum nx×ny grid such that half-diagonal of each sub-rect ≤ reach
 function optimalGrid(W, H, reach) {
+  // Use effective dimensions: cell centers are 0.5m from walls
+  var eW = Math.max(1, W - 1),
+    eH = Math.max(1, H - 1);
   var nx = 1,
     ny = 1;
   var ok = function ok(nx, ny) {
-    var hw = W / nx / 2,
-      hh = H / ny / 2;
+    var hw = eW / nx / 2,
+      hh = eH / ny / 2;
     return Math.sqrt(hw * hw + hh * hh) <= reach;
   };
   while (!ok(nx, ny)) {
@@ -287,7 +290,7 @@ function PlanCanvas(_ref2) {
     if (!containerRef.current) return;
     var ro = new ResizeObserver(function (entries) {
       var w = entries[0].contentRect.width;
-      setCanvasSize(Math.min(Math.floor(w), 900));
+      setCanvasSize(Math.min(Math.floor(w), 1000));
     });
     ro.observe(containerRef.current);
     return function () {
@@ -311,8 +314,9 @@ function PlanCanvas(_ref2) {
     return Math.min(canvasSize / worldW, canvasSize / worldH);
   }, [bW, bH, reach, canvasSize]);
   var scale = baseScale * zoom;
-  var offX = (reach + MARGIN_M) * scale;
-  var offY = (reach + MARGIN_M) * scale;
+  // Always center the building in the canvas
+  var offX = canvasSize / 2 - bW / 2 * scale;
+  var offY = canvasSize / 2 - bH / 2 * scale;
   var w2c = function w2c(wx, wy) {
     return [offX + wx * scale, offY + wy * scale];
   };
@@ -541,20 +545,25 @@ function PlanCanvas(_ref2) {
     } else if (!isMove) {
       // Place/remove device
       var activeCells = shape.type === "draw" ? drawnCells : getBuildingCells(shape);
-      if (!activeCells.some(function (c) {
-        return c.x === gx && c.y === gy;
-      })) return;
       var snap = {
         x: gx + 0.5,
         y: gy + 0.5
       };
+      // Pixel-based tolerance so small buildings are still clickable
+      var toleranceM = Math.max(1.0, 18 / scale);
       setDevices(function (prev) {
         var idx = prev.findIndex(function (d) {
-          return Math.abs(d.x - snap.x) < 0.8 && Math.abs(d.y - snap.y) < 0.8;
+          var dx = (d.x - snap.x) * scale,
+            dy = (d.y - snap.y) * scale;
+          return Math.sqrt(dx * dx + dy * dy) < 18;
         });
         if (idx >= 0) return prev.filter(function (_, i) {
           return i !== idx;
         });
+        // Only add device if click is inside building
+        if (!activeCells.some(function (c) {
+          return c.x === gx && c.y === gy;
+        })) return prev;
         return [].concat(_toConsumableArray(prev), [snap]);
       });
     }
@@ -878,24 +887,30 @@ function ShapePanel(_ref7) {
   }, React.createElement("div", null, React.createElement("span", {
     style: lbl
   }, "Délka (m)"), React.createElement("input", {
-    type: "number",
+    type: "text",
+    inputMode: "numeric",
     value: dims.w,
-    min: 1,
-    max: 100,
     style: inp,
+    onFocus: function onFocus(e) {
+      return e.target.select();
+    },
     onChange: function onChange(e) {
-      return set("w", e.target.value);
+      var v = parseInt(e.target.value.replace(/\D/g, '')) || 1;
+      set("w", Math.min(200, v));
     }
   })), React.createElement("div", null, React.createElement("span", {
     style: lbl
   }, "Šířka (m)"), React.createElement("input", {
-    type: "number",
+    type: "text",
+    inputMode: "numeric",
     value: dims.h,
-    min: 1,
-    max: 100,
     style: inp,
+    onFocus: function onFocus(e) {
+      return e.target.select();
+    },
     onChange: function onChange(e) {
-      return set("h", e.target.value);
+      var v = parseInt(e.target.value.replace(/\D/g, '')) || 1;
+      set("h", Math.min(200, v));
     }
   }))), preset === "L" && (_React3 = React).createElement.apply(_React3, ["div", {
     style: {
@@ -913,13 +928,16 @@ function ShapePanel(_ref7) {
     }, React.createElement("span", {
       style: lbl
     }, label), React.createElement("input", {
-      type: "number",
+      type: "text",
+      inputMode: "numeric",
       value: dims[k],
-      min: 1,
-      max: 100,
       style: inp,
+      onFocus: function onFocus(e) {
+        return e.target.select();
+      },
       onChange: function onChange(e) {
-        return set(k, e.target.value);
+        var v = parseInt(e.target.value.replace(/\D/g, '')) || 1;
+        set(k, Math.min(200, v));
       }
     }));
   })))), preset === "draw" && React.createElement("div", {
