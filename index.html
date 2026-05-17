@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Goorn IQ Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#EDEAE2}
+input,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#F2EEE6}
+::-webkit-scrollbar-thumb{background:#D8D0BE;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="loading" style="min-height:100vh;background:#EDEAE2;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:Inter,sans-serif;">
+  <div style="width:44px;height:44px;border-radius:10px;background:#487A4C;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;letter-spacing:-0.5px;">IQ</div>
+  <div style="font-size:13px;color:#9C9080;">Načítám Goorn IQ Planner…</div>
+</div>
+<div id="root" style="display:none"></div>
+<script>
+window.onerror=function(msg,src,line,col,err){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('root').style.display='flex';
+  document.getElementById('root').style.alignItems='center';
+  document.getElementById('root').style.justifyContent='center';
+  document.getElementById('root').style.minHeight='100vh';
+  document.getElementById('root').innerHTML='<div style="background:#FAF7F2;border-radius:12px;padding:24px;max-width:380px;text-align:center"><div style="color:#B45252;font-weight:700;margin-bottom:8px">Chyba při načítání</div><div style="font-size:12px;color:#685E52">'+msg+'</div><button onclick="location.reload()" style="margin-top:14px;padding:8px 16px;background:#487A4C;color:#fff;border:none;border-radius:7px;cursor:pointer">Obnovit</button></div>';
+  return false;
+};
+</script>
+<script>
+(function(){
+"use strict";
+"use strict";
+
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+// Goorn IQ Planner – standalone app
+// Rastrové kreslení půdorysu + algoritmus rozmístění přístrojů + PDF export
+
+var _React = React,
+  useState = _React.useState,
+  useEffect = _React.useEffect,
+  useRef = _React.useRef,
+  useCallback = _React.useCallback;
+
+// ─── DESIGN TOKENS (same as GOORN) ───────────────────────────────────────────
+var C = {
+  bg: "#EDEAE2",
+  surface: "#F8F5EF",
+  surfaceAlt: "#F2EEE6",
+  border: "#D8D0BE",
+  borderLight: "#E6E0D4",
+  green: "#487A4C",
+  greenPale: "#D4EDD6",
+  greenBright: "#3A7D3E",
+  greenBrightPale: "#BDE8C0",
+  brown: "#7A6249",
+  brownMid: "#A48B6A",
+  brownPale: "#EDE5D4",
+  orange: "#B67248",
+  orangePale: "#F2E6D8",
+  danger: "#B45252",
+  dangerPale: "#F2E4E4",
+  text: "#2A2218",
+  textMid: "#685E52",
+  textLight: "#9C9080"
+};
+var F = "'Inter','Segoe UI',system-ui,sans-serif";
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+var REACH = 14; // optimální dosah v metrech
+var REACH_MIN = 12;
+var REACH_MAX = 16;
+var CELL = 20; // px per meter on grid
+var GRID_M = 30; // grid size in meters
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+var dist = function dist(a, b) {
+  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+};
+
+// Check if point is inside polygon (ray casting)
+var pointInPoly = function pointInPoly(px, py, poly) {
+  var inside = false;
+  for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    var xi = poly[i].x,
+      yi = poly[i].y,
+      xj = poly[j].x,
+      yj = poly[j].y;
+    if (yi > py !== yj > py && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+
+// Get all cells of a shape
+var shapeCells = function shapeCells(shape, W, H) {
+  var cells = [];
+  if (shape.type === "rect") {
+    for (var y = 0; y < shape.h; y++) for (var x = 0; x < shape.w; x++) cells.push({
+      x: shape.x + x,
+      y: shape.y + y
+    });
+  } else if (shape.type === "L") {
+    // L = full rect minus top-right cutout
+    for (var _y = 0; _y < shape.h; _y++) for (var _x = 0; _x < shape.w; _x++) {
+      if (!(_x >= shape.cx && _y < shape.cy)) cells.push({
+        x: shape.x + _x,
+        y: shape.y + _y
+      });
+    }
+  } else if (shape.type === "draw") {
+    return shape.cells.map(function (c) {
+      return _objectSpread({}, c);
+    });
+  }
+  return cells;
+};
+
+// Check if a circle of radius r centered at (cx,cy) covers all cells
+var coverage = function coverage(devices, cells, r) {
+  return cells.filter(function (c) {
+    return devices.some(function (d) {
+      return dist({
+        x: c.x + .5,
+        y: c.y + .5
+      }, d) <= r;
+    });
+  });
+};
+
+// Greedy algorithm: place devices to cover all cells
+var autoPlace = function autoPlace(cells, r) {
+  if (!cells.length) return [];
+  var uncovered = new Set(cells.map(function (_, i) {
+    return i;
+  }));
+  var devices = [];
+  var attempts = 0;
+  var _loop = function _loop() {
+    attempts++;
+    // Find cell that is uncovered and would cover most other uncovered cells
+    var best = null,
+      bestCount = 0;
+    var candidates = _toConsumableArray(uncovered).filter(function (_, i) {
+      return i % 3 === 0;
+    }).concat(_toConsumableArray(uncovered).slice(0, 5));
+    var unique = _toConsumableArray(new Set(candidates));
+    var _iterator = _createForOfIteratorHelper(unique),
+      _step;
+    try {
+      var _loop2 = function _loop2() {
+        var ci = _step.value;
+        var cx = cells[ci].x + .5,
+          cy = cells[ci].y + .5;
+        var count = _toConsumableArray(uncovered).filter(function (j) {
+          return dist({
+            x: cells[j].x + .5,
+            y: cells[j].y + .5
+          }, {
+            x: cx,
+            y: cy
+          }) <= r;
+        }).length;
+        if (count > bestCount) {
+          bestCount = count;
+          best = {
+            x: cx,
+            y: cy
+          };
+        }
+      };
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        _loop2();
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+    if (!best) {
+      // Fallback: pick first uncovered centroid
+      var ci = _toConsumableArray(uncovered)[0];
+      best = {
+        x: cells[ci].x + .5,
+        y: cells[ci].y + .5
+      };
+    }
+    devices.push(best);
+    _toConsumableArray(uncovered).forEach(function (j) {
+      if (dist({
+        x: cells[j].x + .5,
+        y: cells[j].y + .5
+      }, best) <= r) uncovered.delete(j);
+    });
+  };
+  while (uncovered.size > 0 && attempts < 50) {
+    _loop();
+  }
+  return devices;
+};
+
+// ─── SHAPE PRESETS ────────────────────────────────────────────────────────────
+var PRESETS = [{
+  id: "rect",
+  label: "Obdélník / Čtverec"
+}, {
+  id: "L",
+  label: "L-tvar"
+}, {
+  id: "draw",
+  label: "Vlastní kreslení"
+}];
+
+// ─── GRID CANVAS ─────────────────────────────────────────────────────────────
+function GridCanvas(_ref) {
+  var shape = _ref.shape,
+    devices = _ref.devices,
+    setDevices = _ref.setDevices,
+    editMode = _ref.editMode,
+    reach = _ref.reach;
+  var canvasRef = useRef(null);
+  var drawRef = useRef(null);
+  var _useState = useState(false),
+    _useState2 = _slicedToArray(_useState, 2),
+    drawing = _useState2[0],
+    setDrawing = _useState2[1];
+  var _useState3 = useState(shape.type === "draw" ? shape.cells : []),
+    _useState4 = _slicedToArray(_useState3, 2),
+    drawnCells = _useState4[0],
+    setDrawnCells = _useState4[1];
+  var isTouch = useRef(false);
+  var cells = shape.type === "draw" ? drawnCells : shapeCells(shape);
+  var cellSet = new Set(cells.map(function (c) {
+    return "".concat(c.x, ",").concat(c.y);
+  }));
+  var getCell = function getCell(e, canvas) {
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = canvas.width / rect.width;
+    var scaleY = canvas.height / rect.height;
+    var cx, cy;
+    if (e.touches) {
+      cx = (e.touches[0].clientX - rect.left) * scaleX;
+      cy = (e.touches[0].clientY - rect.top) * scaleY;
+    } else {
+      cx = (e.clientX - rect.left) * scaleX;
+      cy = (e.clientY - rect.top) * scaleY;
+    }
+    return {
+      x: Math.floor(cx / CELL),
+      y: Math.floor(cy / CELL)
+    };
+  };
+  useEffect(function () {
+    var canvas = canvasRef.current;
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width,
+      H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = "#E0D8CC";
+    ctx.lineWidth = .5;
+    for (var x = 0; x <= GRID_M; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * CELL, 0);
+      ctx.lineTo(x * CELL, H);
+      ctx.stroke();
+    }
+    for (var y = 0; y <= GRID_M; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * CELL);
+      ctx.lineTo(W, y * CELL);
+      ctx.stroke();
+    }
+
+    // Shape fill
+    var activeCells = shape.type === "draw" ? drawnCells : shapeCells(shape);
+    ctx.fillStyle = "#D4EDD6";
+    activeCells.forEach(function (c) {
+      ctx.fillRect(c.x * CELL + 1, c.y * CELL + 1, CELL - 2, CELL - 2);
+    });
+
+    // Device reach circles
+    devices.forEach(function (d, i) {
+      // Tolerance ring
+      ctx.beginPath();
+      ctx.arc(d.x * CELL, d.y * CELL, REACH_MAX * CELL, 0, Math.PI * 2);
+      ctx.strokeStyle = "#B67248" + "44";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Main reach
+      ctx.beginPath();
+      ctx.arc(d.x * CELL, d.y * CELL, reach * CELL, 0, Math.PI * 2);
+      ctx.fillStyle = "#3A7D3E" + "18";
+      ctx.fill();
+      ctx.strokeStyle = "#3A7D3E";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Device dot
+      ctx.beginPath();
+      ctx.arc(d.x * CELL, d.y * CELL, 7, 0, Math.PI * 2);
+      ctx.fillStyle = "#3A7D3E";
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 9px Inter,sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(i + 1, d.x * CELL, d.y * CELL);
+    });
+
+    // Scale bar
+    ctx.fillStyle = C.textLight;
+    ctx.font = "10px Inter,sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("1 čtverec = 1 m", 8, H - 8);
+    ctx.fillRect(8, H - 20, CELL, 3);
+    ctx.fillStyle = C.green;
+  }, [shape, devices, drawnCells, reach]);
+  var handleStart = useCallback(function (e) {
+    e.preventDefault();
+    var canvas = canvasRef.current;
+    var cell = getCell(e, canvas);
+    if (editMode === "device") {
+      if (cellSet.has("".concat(cell.x, ",").concat(cell.y))) {
+        // Toggle device at snap point (center of cell)
+        var snap = {
+          x: cell.x + .5,
+          y: cell.y + .5
+        };
+        var existing = devices.findIndex(function (d) {
+          return Math.abs(d.x - snap.x) < 1 && Math.abs(d.y - snap.y) < 1;
+        });
+        if (existing >= 0) setDevices(function (d) {
+          return d.filter(function (_, i) {
+            return i !== existing;
+          });
+        });else setDevices(function (d) {
+          return [].concat(_toConsumableArray(d), [snap]);
+        });
+      }
+    } else if (editMode === "draw") {
+      setDrawing(true);
+      var key = "".concat(cell.x, ",").concat(cell.y);
+      setDrawnCells(function (prev) {
+        var has = prev.some(function (c) {
+          return c.x === cell.x && c.y === cell.y;
+        });
+        return has ? prev.filter(function (c) {
+          return !(c.x === cell.x && c.y === cell.y);
+        }) : [].concat(_toConsumableArray(prev), [{
+          x: cell.x,
+          y: cell.y
+        }]);
+      });
+    }
+  }, [editMode, devices, setDevices, cellSet, drawnCells]);
+  var handleMove = useCallback(function (e) {
+    if (!drawing || editMode !== "draw") return;
+    e.preventDefault();
+    var canvas = canvasRef.current;
+    var cell = getCell(e, canvas);
+    setDrawnCells(function (prev) {
+      if (prev.some(function (c) {
+        return c.x === cell.x && c.y === cell.y;
+      })) return prev;
+      return [].concat(_toConsumableArray(prev), [{
+        x: cell.x,
+        y: cell.y
+      }]);
+    });
+  }, [drawing, editMode]);
+  var handleEnd = function handleEnd() {
+    return setDrawing(false);
+  };
+
+  // Sync drawn cells back to shape
+  useEffect(function () {
+    if (shape.type === "draw" && drawRef.current) drawRef.current(drawnCells);
+  }, [drawnCells]);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      overflow: "auto",
+      border: "1px solid ".concat(C.border),
+      borderRadius: 8
+    }
+  }, /*#__PURE__*/React.createElement("canvas", {
+    ref: canvasRef,
+    width: GRID_M * CELL,
+    height: GRID_M * CELL,
+    style: {
+      display: "block",
+      maxWidth: "100%",
+      cursor: editMode === "device" ? "crosshair" : "cell",
+      touchAction: "none"
+    },
+    onMouseDown: handleStart,
+    onMouseMove: handleMove,
+    onMouseUp: handleEnd,
+    onTouchStart: handleStart,
+    onTouchMove: handleMove,
+    onTouchEnd: handleEnd
+  }));
+}
+
+// ─── SHAPE INPUT PANEL ────────────────────────────────────────────────────────
+function ShapePanel(_ref2) {
+  var shape = _ref2.shape,
+    setShape = _ref2.setShape,
+    setDevices = _ref2.setDevices;
+  var _useState5 = useState("rect"),
+    _useState6 = _slicedToArray(_useState5, 2),
+    preset = _useState6[0],
+    setPreset = _useState6[1];
+  var _useState7 = useState({
+      w: 10,
+      h: 8,
+      cx: 6,
+      cy: 4
+    }),
+    _useState8 = _slicedToArray(_useState7, 2),
+    dims = _useState8[0],
+    setDims = _useState8[1];
+  var applyShape = function applyShape() {
+    setDevices([]);
+    if (preset === "rect") {
+      setShape({
+        type: "rect",
+        x: 2,
+        y: 2,
+        w: dims.w,
+        h: dims.h
+      });
+    } else if (preset === "L") {
+      setShape({
+        type: "L",
+        x: 2,
+        y: 2,
+        w: dims.w,
+        h: dims.h,
+        cx: dims.cx,
+        cy: dims.cy
+      });
+    } else {
+      setShape({
+        type: "draw",
+        cells: []
+      });
+    }
+  };
+  var inp = {
+    border: "1px solid ".concat(C.border),
+    borderRadius: 6,
+    padding: "6px 8px",
+    fontSize: 13,
+    color: C.text,
+    background: C.surface,
+    outline: "none",
+    width: 60
+  };
+  var lbl = {
+    fontSize: 10,
+    color: C.textLight,
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: ".5px",
+    marginBottom: 3,
+    display: "block"
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: 14,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.textMid,
+      textTransform: "uppercase",
+      letterSpacing: ".5px"
+    }
+  }, "Tvar budovy"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6,
+      flexWrap: "wrap"
+    }
+  }, PRESETS.map(function (p) {
+    return /*#__PURE__*/React.createElement("button", {
+      key: p.id,
+      onClick: function onClick() {
+        return setPreset(p.id);
+      },
+      style: {
+        padding: "5px 10px",
+        borderRadius: 6,
+        fontSize: 11,
+        cursor: "pointer",
+        background: preset === p.id ? C.greenPale : C.surfaceAlt,
+        border: "1px solid ".concat(preset === p.id ? C.green : C.border),
+        color: preset === p.id ? C.green : C.textMid,
+        fontWeight: preset === p.id ? 700 : 500
+      }
+    }, p.label);
+  })), preset === "rect" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 12,
+      alignItems: "flex-end",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: lbl
+  }, "D\xE9lka (m)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: dims.w,
+    min: 2,
+    max: 28,
+    onChange: function onChange(e) {
+      return setDims(function (d) {
+        return _objectSpread(_objectSpread({}, d), {}, {
+          w: +e.target.value
+        });
+      });
+    },
+    style: inp
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: lbl
+  }, "\u0160\xED\u0159ka (m)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: dims.h,
+    min: 2,
+    max: 28,
+    onChange: function onChange(e) {
+      return setDims(function (d) {
+        return _objectSpread(_objectSpread({}, d), {}, {
+          h: +e.target.value
+        });
+      });
+    },
+    style: inp
+  }))), preset === "L" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      alignItems: "flex-end"
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: lbl
+  }, "D\xE9lka (m)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: dims.w,
+    min: 4,
+    max: 28,
+    onChange: function onChange(e) {
+      return setDims(function (d) {
+        return _objectSpread(_objectSpread({}, d), {}, {
+          w: +e.target.value
+        });
+      });
+    },
+    style: inp
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: lbl
+  }, "\u0160\xED\u0159ka (m)"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: dims.h,
+    min: 4,
+    max: 28,
+    onChange: function onChange(e) {
+      return setDims(function (d) {
+        return _objectSpread(_objectSpread({}, d), {}, {
+          h: +e.target.value
+        });
+      });
+    },
+    style: inp
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: lbl
+  }, "V\xFD\u0159ez \u0161\xED\u0159ka"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: dims.cx,
+    min: 2,
+    max: dims.w - 1,
+    onChange: function onChange(e) {
+      return setDims(function (d) {
+        return _objectSpread(_objectSpread({}, d), {}, {
+          cx: +e.target.value
+        });
+      });
+    },
+    style: inp
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: lbl
+  }, "V\xFD\u0159ez v\xFD\u0161ka"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: dims.cy,
+    min: 2,
+    max: dims.h - 1,
+    onChange: function onChange(e) {
+      return setDims(function (d) {
+        return _objectSpread(_objectSpread({}, d), {}, {
+          cy: +e.target.value
+        });
+      });
+    },
+    style: inp
+  }))), preset === "draw" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.textMid,
+      lineHeight: 1.6,
+      background: C.greenPale,
+      borderRadius: 6,
+      padding: "8px 10px"
+    }
+  }, "Kreslete p\u016Fdorys p\u0159\xEDmo na rastru prstem nebo my\u0161\xED. Kliknut\xEDm bu\u0148ku p\u0159id\xE1te nebo odeberete."), /*#__PURE__*/React.createElement("button", {
+    onClick: applyShape,
+    style: {
+      padding: "9px",
+      borderRadius: 8,
+      border: "none",
+      background: C.green,
+      color: "#fff",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "\u2713 Pou\u017E\xEDt tvar"));
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App() {
+  var _useState9 = useState({
+      type: "rect",
+      x: 2,
+      y: 2,
+      w: 12,
+      h: 8
+    }),
+    _useState0 = _slicedToArray(_useState9, 2),
+    shape = _useState0[0],
+    _setShape = _useState0[1];
+  var _useState1 = useState([]),
+    _useState10 = _slicedToArray(_useState1, 2),
+    devices = _useState10[0],
+    setDevices = _useState10[1];
+  var _useState11 = useState("device"),
+    _useState12 = _slicedToArray(_useState11, 2),
+    editMode = _useState12[0],
+    setEditMode = _useState12[1]; // "device" | "draw"
+  var _useState13 = useState(REACH),
+    _useState14 = _slicedToArray(_useState13, 2),
+    reach = _useState14[0],
+    setReach = _useState14[1];
+  var _useState15 = useState(1),
+    _useState16 = _slicedToArray(_useState15, 2),
+    floors = _useState16[0],
+    setFloors = _useState16[1];
+  var _useState17 = useState(""),
+    _useState18 = _slicedToArray(_useState17, 2),
+    customerName = _useState18[0],
+    setCustomerName = _useState18[1];
+  var _useState19 = useState(""),
+    _useState20 = _slicedToArray(_useState19, 2),
+    customerCity = _useState20[0],
+    setCustomerCity = _useState20[1];
+  var _useState21 = useState(""),
+    _useState22 = _slicedToArray(_useState21, 2),
+    notes = _useState22[0],
+    setNotes = _useState22[1];
+  var _useState23 = useState("plan"),
+    _useState24 = _slicedToArray(_useState23, 2),
+    tab = _useState24[0],
+    setTab = _useState24[1];
+  var previewRef = useRef(null);
+  var cells = shape.type === "draw" ? shape.cells : shapeCells(shape);
+  var coveredCells = coverage(devices, cells, reach);
+  var coveragePct = cells.length > 0 ? Math.round(coveredCells.length / cells.length * 100) : 0;
+  var area = cells.length; // m²
+
+  var handleAutoPlace = function handleAutoPlace() {
+    var placed = autoPlace(cells, reach);
+    setDevices(placed);
+  };
+  var handlePDF = function handlePDF() {
+    if (!window.jspdf) {
+      alert("PDF knihovna se načítá, zkuste za chvíli.");
+      return;
+    }
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+    var canvas = document.getElementById("plan-canvas");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(72, 122, 76);
+    doc.text("Goorn IQ Planner", 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(106, 94, 82);
+    doc.setFont("helvetica", "normal");
+    if (customerName) doc.text("Z\xE1kazn\xEDk: ".concat(customerName).concat(customerCity ? " – " + customerCity : ""), 14, 26);
+    doc.text("Plocha: ~".concat(area, " m\xB2 \xB7 Podla\u017E\xED: ").concat(floors, " \xB7 P\u0159\xEDstroje: ").concat(devices.length), 14, 32);
+    doc.text("Pokryt\xED: ".concat(coveragePct, " % plochy \xB7 Dosah p\u0159\xEDstroje: ").concat(reach, " m"), 14, 38);
+
+    // Canvas as image
+    if (canvas) {
+      var imgData = canvas.toDataURL("image/png");
+      var imgW = 182,
+        imgH = 182;
+      doc.addImage(imgData, "PNG", 14, 44, imgW, imgH);
+    }
+    var y = 232;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(58, 125, 62);
+    doc.text("Doporu\u010Den\xFD po\u010Det p\u0159\xEDstroj\u016F: ".concat(devices.length), 14, y);
+    y += 7;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(106, 94, 82);
+    devices.forEach(function (d, i) {
+      doc.text("P\u0159\xEDstroj ".concat(i + 1, ": pozice ").concat(d.x.toFixed(1), " m / ").concat(d.y.toFixed(1), " m od rohov\xE9ho bodu"), 14, y);
+      y += 5;
+    });
+    if (notes) {
+      y += 4;
+      doc.text("Pozn\xE1mka: ".concat(notes), 14, y);
+      y += 5;
+    }
+    y += 6;
+    doc.setFontSize(8);
+    doc.setTextColor(156, 144, 128);
+    doc.text("Umístění přístrojů určuje technik při instalaci na základě svých zkušeností.", 14, y);
+    y += 4;
+    doc.text("Dosah přístroje je 14 m (optimální), tolerance ±2 m. Koule dosahu pokrývá 28 m vertikálně.", 14, y);
+    y += 10;
+    doc.setFontSize(7.5);
+    doc.text("Pro GOORN  ©  ⁶⁷〽️  with Claude.ai  2026  |  goorn-prehled-zakazek.web.app", 14, y);
+    doc.save("GoornIQ_".concat(customerName || "plán", "_").concat(new Date().toLocaleDateString("cs-CZ").replace(/\./g, "-"), ".pdf"));
+  };
+  var tabBtn = function tabBtn(id, label) {
+    return /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return setTab(id);
+      },
+      style: {
+        padding: "8px 14px",
+        borderRadius: 7,
+        border: "none",
+        cursor: "pointer",
+        fontSize: 12,
+        background: tab === id ? C.green : C.surfaceAlt,
+        color: tab === id ? "#fff" : C.textMid,
+        fontWeight: tab === id ? 700 : 500
+      }
+    }, label);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: F,
+      background: C.bg,
+      minHeight: "100vh",
+      color: C.text
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      borderBottom: "1px solid ".concat(C.border),
+      padding: "0 16px",
+      height: 52,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 32,
+      height: 32,
+      borderRadius: 7,
+      background: C.green,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 9,
+      fontWeight: 800,
+      color: "#fff",
+      letterSpacing: "-0.5px",
+      lineHeight: 1
+    }
+  }, "IQ"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 13,
+      color: C.text
+    }
+  }, "Goorn IQ Planner"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 8,
+      color: C.textLight
+    }
+  }, "N\xE1vrh rozm\xEDst\u011Bn\xED p\u0159\xEDstroj\u016F"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, tabBtn("plan", "Plán"), tabBtn("info", "Zákazník"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 14,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12,
+      maxWidth: 900,
+      margin: "0 auto"
+    }
+  }, tab === "info" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.textMid,
+      textTransform: "uppercase",
+      letterSpacing: ".5px"
+    }
+  }, "Z\xE1kazn\xEDk"), [{
+    label: "Jméno / Příjmení",
+    val: customerName,
+    set: setCustomerName,
+    ph: "Novák Jan"
+  }, {
+    label: "Město / Adresa",
+    val: customerCity,
+    set: setCustomerCity,
+    ph: "Trutnov"
+  }, {
+    label: "Poznámka",
+    val: notes,
+    set: setNotes,
+    ph: "Sklep+přízemí, stáří budovy..."
+  }].map(function (_ref3) {
+    var label = _ref3.label,
+      val = _ref3.val,
+      set = _ref3.set,
+      ph = _ref3.ph;
+    return /*#__PURE__*/React.createElement("div", {
+      key: label
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 9,
+        color: C.textLight,
+        fontWeight: 700,
+        textTransform: "uppercase",
+        letterSpacing: ".5px",
+        marginBottom: 3
+      }
+    }, label), /*#__PURE__*/React.createElement("input", {
+      value: val,
+      onChange: function onChange(e) {
+        return set(e.target.value);
+      },
+      placeholder: ph,
+      style: {
+        width: "100%",
+        border: "1px solid ".concat(C.border),
+        borderRadius: 7,
+        padding: "8px 10px",
+        fontSize: 13,
+        color: C.text,
+        background: C.surfaceAlt,
+        outline: "none",
+        boxSizing: "border-box"
+      }
+    }));
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      color: C.textLight,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: ".5px",
+      marginBottom: 6
+    }
+  }, "Po\u010Det podla\u017E\xED"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 6
+    }
+  }, [1, 2].map(function (f) {
+    return /*#__PURE__*/React.createElement("button", {
+      key: f,
+      onClick: function onClick() {
+        return setFloors(f);
+      },
+      style: {
+        flex: 1,
+        padding: "8px",
+        borderRadius: 7,
+        fontSize: 12,
+        cursor: "pointer",
+        background: floors === f ? C.greenPale : C.surfaceAlt,
+        border: "1px solid ".concat(floors === f ? C.green : C.border),
+        color: floors === f ? C.green : C.textMid,
+        fontWeight: floors === f ? 700 : 500
+      }
+    }, f === 1 ? "1 podlaží (přízemí)" : "2 podlaží (sklep + přízemí)");
+  }))))), tab === "plan" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ShapePanel, {
+    shape: shape,
+    setShape: function setShape(s) {
+      _setShape(s);
+      setDevices([]);
+    },
+    setDevices: setDevices
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, [{
+    label: "Plocha",
+    value: "~".concat(area, " m\xB2"),
+    color: C.brown
+  }, {
+    label: "Přístroje",
+    value: devices.length,
+    color: C.greenBright
+  }, {
+    label: "Pokrytí",
+    value: "".concat(coveragePct, " %"),
+    color: coveragePct >= 100 ? C.greenBright : coveragePct >= 80 ? C.orange : C.danger
+  }].map(function (_ref4) {
+    var label = _ref4.label,
+      value = _ref4.value,
+      color = _ref4.color;
+    return /*#__PURE__*/React.createElement("div", {
+      key: label,
+      style: {
+        flex: 1,
+        minWidth: 80,
+        background: C.surface,
+        border: "1px solid ".concat(C.border),
+        borderRadius: 10,
+        padding: "10px 12px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 9,
+        color: C.textLight,
+        fontWeight: 700,
+        textTransform: "uppercase",
+        letterSpacing: ".5px"
+      }
+    }, label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 22,
+        fontWeight: 800,
+        color: color,
+        lineHeight: 1.1
+      }
+    }, value));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 80,
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 9,
+      color: C.textLight,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: ".5px"
+    }
+  }, "Dosah"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: REACH_MIN,
+    max: REACH_MAX,
+    value: reach,
+    onChange: function onChange(e) {
+      return setReach(+e.target.value);
+    },
+    style: {
+      width: "100%",
+      marginTop: 4,
+      accentColor: C.green
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.green
+    }
+  }, reach, " m"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      alignItems: "center"
+    }
+  }, shape.type === "draw" && /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return setEditMode(function (m) {
+        return m === "draw" ? "device" : "draw";
+      });
+    },
+    style: {
+      padding: "8px 12px",
+      borderRadius: 7,
+      fontSize: 12,
+      fontWeight: 600,
+      cursor: "pointer",
+      background: editMode === "draw" ? C.brownPale : C.surfaceAlt,
+      border: "1px solid ".concat(editMode === "draw" ? C.brownMid : C.border),
+      color: editMode === "draw" ? C.brownMid : C.textMid
+    }
+  }, editMode === "draw" ? "✏️ Kreslím půdorys" : "✏️ Kreslit půdorys"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleAutoPlace,
+    style: {
+      flex: 1,
+      padding: "9px 12px",
+      borderRadius: 7,
+      border: "none",
+      background: C.green,
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "\u26A1 Automatick\xFD n\xE1vrh"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      return setDevices([]);
+    },
+    style: {
+      padding: "9px 12px",
+      borderRadius: 7,
+      fontSize: 12,
+      fontWeight: 600,
+      cursor: "pointer",
+      background: C.dangerPale,
+      border: "1px solid ".concat(C.danger, "44"),
+      color: C.danger
+    }
+  }, "\u2715 Smazat p\u0159\xEDstroje"), /*#__PURE__*/React.createElement("button", {
+    onClick: handlePDF,
+    style: {
+      padding: "9px 12px",
+      borderRadius: 7,
+      border: "none",
+      background: C.brown,
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "\u2193 PDF")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: C.textLight,
+      padding: "0 2px"
+    }
+  }, shape.type !== "draw" ? "Kliknutím do půdorysu přidáte/odeberete přístroj. Nebo použijte automatický návrh." : "Nejprve nakreslete půdorys, pak klikněte na '✏️ Kreslit půdorys' pro přepnutí na umísťování přístrojů."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative"
+    }
+  }, /*#__PURE__*/React.createElement("canvas", {
+    id: "plan-canvas",
+    ref: function ref(node) {
+      if (!node) return;
+      var ctx = node.getContext("2d");
+      var W = node.width = GRID_M * CELL,
+        H = node.height = GRID_M * CELL;
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid bg
+      ctx.fillStyle = "#F8F5EF";
+      ctx.fillRect(0, 0, W, H);
+
+      // Grid lines
+      ctx.strokeStyle = "#E0D8CC";
+      ctx.lineWidth = .5;
+      for (var x = 0; x <= GRID_M; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * CELL, .5);
+        ctx.lineTo(x * CELL, H);
+        ctx.stroke();
+      }
+      for (var y = 0; y <= GRID_M; y++) {
+        ctx.beginPath();
+        ctx.moveTo(.5, y * CELL);
+        ctx.lineTo(W, y * CELL);
+        ctx.stroke();
+      }
+
+      // 5m markers
+      ctx.strokeStyle = "#C8C0B0";
+      ctx.lineWidth = 1;
+      for (var _x2 = 0; _x2 <= GRID_M; _x2 += 5) {
+        ctx.beginPath();
+        ctx.moveTo(_x2 * CELL, .5);
+        ctx.lineTo(_x2 * CELL, H);
+        ctx.stroke();
+      }
+      for (var _y2 = 0; _y2 <= GRID_M; _y2 += 5) {
+        ctx.beginPath();
+        ctx.moveTo(.5, _y2 * CELL);
+        ctx.lineTo(W, _y2 * CELL);
+        ctx.stroke();
+      }
+
+      // Shape cells
+      var activeCells = shape.type === "draw" ? shape.cells : shapeCells(shape);
+      var covSet = new Set(coveredCells.map(function (c) {
+        return "".concat(c.x, ",").concat(c.y);
+      }));
+      activeCells.forEach(function (c) {
+        ctx.fillStyle = covSet.has("".concat(c.x, ",").concat(c.y)) ? "#BDE8C0" : "#D4EDD6";
+        ctx.fillRect(c.x * CELL + .5, c.y * CELL + .5, CELL - 1, CELL - 1);
+      });
+
+      // Device circles
+      devices.forEach(function (d, i) {
+        // Tolerance
+        ctx.beginPath();
+        ctx.arc(d.x * CELL, d.y * CELL, REACH_MAX * CELL, 0, Math.PI * 2);
+        ctx.strokeStyle = "#B6724844";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Reach
+        ctx.beginPath();
+        ctx.arc(d.x * CELL, d.y * CELL, reach * CELL, 0, Math.PI * 2);
+        ctx.fillStyle = "#3A7D3E18";
+        ctx.fill();
+        ctx.strokeStyle = "#3A7D3E";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Dot
+        ctx.beginPath();
+        ctx.arc(d.x * CELL, d.y * CELL, 9, 0, Math.PI * 2);
+        ctx.fillStyle = "#3A7D3E";
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 10px Inter,sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(i + 1, d.x * CELL, d.y * CELL);
+      });
+
+      // Scale bar
+      ctx.fillStyle = C.textLight;
+      ctx.font = "10px Inter,sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("1 čtverec = 1 metr", 8, H - 6);
+      ctx.fillStyle = C.green;
+      ctx.fillRect(8, H - 20, 5 * CELL, 3);
+      ctx.fillStyle = C.textLight;
+      ctx.fillText("5 m", 8 + 5 * CELL + 4, H - 6);
+    },
+    style: {
+      display: "block",
+      width: "100%",
+      cursor: "crosshair",
+      borderRadius: 8,
+      border: "1px solid ".concat(C.border),
+      touchAction: "none",
+      maxWidth: "100%"
+    },
+    onClick: function onClick(e) {
+      var canvas = document.getElementById("plan-canvas");
+      var rect = canvas.getBoundingClientRect();
+      var scaleX = canvas.width / rect.width;
+      var scaleY = canvas.height / rect.height;
+      var cx = (e.clientX - rect.left) * scaleX;
+      var cy = (e.clientY - rect.top) * scaleY;
+      var gx = Math.floor(cx / CELL),
+        gy = Math.floor(cy / CELL);
+      var snap = {
+        x: gx + .5,
+        y: gy + .5
+      };
+      var activeCells = shape.type === "draw" ? shape.cells : shapeCells(shape);
+      if (!activeCells.some(function (c) {
+        return c.x === gx && c.y === gy;
+      })) return;
+      var existing = devices.findIndex(function (d) {
+        return Math.abs(d.x - snap.x) < 1 && Math.abs(d.y - snap.y) < 1;
+      });
+      if (existing >= 0) setDevices(function (d) {
+        return d.filter(function (_, i) {
+          return i !== existing;
+        });
+      });else setDevices(function (d) {
+        return [].concat(_toConsumableArray(d), [snap]);
+      });
+    }
+  })), devices.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      fontWeight: 700,
+      color: C.textMid,
+      textTransform: "uppercase",
+      letterSpacing: ".5px",
+      marginBottom: 10
+    }
+  }, "Um\xEDst\u011Bn\xED p\u0159\xEDstroj\u016F"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, devices.map(function (d, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "6px 10px",
+        background: C.greenPale,
+        borderRadius: 7
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 22,
+        height: 22,
+        borderRadius: "50%",
+        background: C.greenBright,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 10,
+        fontWeight: 800,
+        color: "#fff",
+        flexShrink: 0
+      }
+    }, i + 1), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.text,
+        flex: 1
+      }
+    }, "Pozice: ", /*#__PURE__*/React.createElement("strong", null, d.x.toFixed(1), " m"), " od lev\xE9ho okraje, ", /*#__PURE__*/React.createElement("strong", null, d.y.toFixed(1), " m"), " od horn\xEDho okraje"), /*#__PURE__*/React.createElement("button", {
+      onClick: function onClick() {
+        return setDevices(function (devs) {
+          return devs.filter(function (_, j) {
+            return j !== i;
+          });
+        });
+      },
+      style: {
+        border: "none",
+        background: "none",
+        cursor: "pointer",
+        color: C.danger,
+        fontSize: 16,
+        lineHeight: 1
+      }
+    }, "\xD7"));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      fontSize: 10,
+      color: C.textLight,
+      lineHeight: 1.5
+    }
+  }, "* P\u0159esn\xE9 um\xEDst\u011Bn\xED ur\u010Duje technik p\u0159i instalaci. Pozice jsou orienta\u010Dn\xED."))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "8px 0 4px",
+      fontSize: 9,
+      color: C.textLight,
+      lineHeight: 1.8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 700,
+      color: C.brownMid,
+      fontSize: 10
+    }
+  }, "Goorn IQ Planner"), /*#__PURE__*/React.createElement("div", null, "Pro GOORN \xA9 \u2076\u2077\u303D\uFE0F with Claude.ai \u25D1 2026"))));
+}
+var rootEl = document.getElementById("root");
+rootEl.style.display = "block";
+document.getElementById("loading").style.display = "none";
+ReactDOM.createRoot(rootEl).render(/*#__PURE__*/React.createElement(App, null));
+})();
+</script>
+</body>
+</html>
