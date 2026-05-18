@@ -8,6 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -22,21 +25,30 @@ input,textarea,button{font-family:inherit}
 <div id="loading" style="min-height:100vh;background:#EDEAE2;display:flex;align-items:center;
   justify-content:center;flex-direction:column;gap:12px;font-family:Inter,sans-serif;">
   <div style="width:44px;height:44px;border-radius:10px;background:#487A4C;display:flex;
-    align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;
-    letter-spacing:-0.5px;">IQ</div>
+    align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;">IQ</div>
   <div style="font-size:13px;color:#9C9080;">Načítám Goorn IQ Planner…</div>
 </div>
 <div id="root" style="display:none"></div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAsCWNxwpWs9daTOIc2vZVsaLACQlkM0MU",
+  authDomain:"goorn-prehled-zakazek.firebaseapp.com",
+  projectId:"goorn-prehled-zakazek",
+  storageBucket:"goorn-prehled-zakazek.firebasestorage.app",
+  messagingSenderId:"782644549894",
+  appId:"1:782644549894:web:b6bac82be626c887e0e687"
+});
+</script>
 <script>
 window.onerror=function(msg,src,line,col,err){
   document.getElementById('loading').style.display='none';
   var r=document.getElementById('root');
   r.style.cssText='display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px';
-  r.innerHTML='<div style="background:#FAF7F2;border-radius:12px;padding:24px;max-width:400px;'+
-    'text-align:center"><div style="color:#B45252;font-weight:700;margin-bottom:8px">Chyba</div>'+
-    '<div style="font-size:12px;color:#685E52;word-break:break-all">'+msg+'</div>'+
-    '<button onclick="location.reload()" style="margin-top:14px;padding:8px 16px;'+
-    'background:#487A4C;color:#fff;border:none;border-radius:7px;cursor:pointer">Obnovit</button></div>';
+  r.innerHTML='<div style="background:#FAF7F2;border-radius:12px;padding:24px;max-width:400px;text-align:center">'+
+    '<div style="color:#B45252;font-weight:700;margin-bottom:8px">Chyba</div>'+
+    '<div style="font-size:12px;color:#685E52;word-break:break-all">'+(err?err.toString():msg)+'</div>'+
+    '<button onclick="location.reload()" style="margin-top:14px;padding:8px 16px;background:#487A4C;'+
+    'color:#fff;border:none;border-radius:7px;cursor:pointer">Obnovit</button></div>';
   return false;
 };
 </script>
@@ -46,21 +58,25 @@ window.onerror=function(msg,src,line,col,err){
 "use strict";
 
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
 function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 var _React = React,
   useState = _React.useState,
   useEffect = _React.useEffect,
@@ -86,7 +102,8 @@ var C = {
   orangePale: "#F2E6D8",
   danger: "#B45252",
   dangerPale: "#F2E4E4",
-  claude: "#D4622A",
+  amber: "#8A7040",
+  amberPale: "#F2EAD6",
   text: "#2A2218",
   textMid: "#685E52",
   textLight: "#9C9080"
@@ -95,14 +112,61 @@ var F = "'Inter','Segoe UI',system-ui,sans-serif";
 var REACH_DEFAULT = 14,
   REACH_MIN = 12,
   REACH_MAX = 16;
-var MARGIN_M = 4; // extra metres around building+reach on canvas
-var DRAW_GRID_M = 62; // default drawing grid size in metres
+var MARGIN_M = 4;
+var DRAW_GRID_M = 62;
 
-// ─── CLAUDE LOGO SVG ──────────────────────────────────────────────────────────
+// ─── FIREBASE ─────────────────────────────────────────────────────────────────
+var auth = firebase.auth();
+var db = firebase.firestore();
+var uid = function uid() {
+  return "".concat(Date.now(), "-").concat(Math.random().toString(36).slice(2, 8));
+};
+function usePlans(userId) {
+  var _useState = useState([]),
+    _useState2 = _slicedToArray(_useState, 2),
+    plans = _useState2[0],
+    setPlans = _useState2[1];
+  var _useState3 = useState(false),
+    _useState4 = _slicedToArray(_useState3, 2),
+    ready = _useState4[0],
+    setReady = _useState4[1];
+  useEffect(function () {
+    if (!userId) return;
+    var unsub = db.collection("users").doc(userId).collection("iq_plans").orderBy("updatedAt", "desc").onSnapshot(function (snap) {
+      setPlans(snap.docs.map(function (d) {
+        return d.data();
+      }));
+      setReady(true);
+    }, function (err) {
+      console.error(err);
+      setReady(true);
+    });
+    return unsub;
+  }, [userId]);
+  var col = function col() {
+    return db.collection("users").doc(userId).collection("iq_plans");
+  };
+  var savePlan = function savePlan(p) {
+    return col().doc(p.id).set(p, {
+      merge: true
+    });
+  };
+  var deletePlan = function deletePlan(id) {
+    return col().doc(id).delete();
+  };
+  return {
+    plans: plans,
+    ready: ready,
+    savePlan: savePlan,
+    deletePlan: deletePlan
+  };
+}
+
+// ─── CLAUDE LOGO ──────────────────────────────────────────────────────────────
 var ClaudeLogo = function ClaudeLogo(_ref) {
   var _React2;
   var _ref$size = _ref.size,
-    size = _ref$size === void 0 ? 20 : _ref$size;
+    size = _ref$size === void 0 ? 18 : _ref$size;
   return React.createElement("svg", {
     width: size,
     height: size,
@@ -129,7 +193,29 @@ var ClaudeLogo = function ClaudeLogo(_ref) {
   })))));
 };
 
-// Flood-fill: fill interior cells of drawn shape
+// ─── GEOMETRY ─────────────────────────────────────────────────────────────────
+function getBuildingCells(shape) {
+  if (shape.type === "rect") {
+    var c = [];
+    for (var y = 0; y < shape.h; y++) for (var x = 0; x < shape.w; x++) c.push({
+      x: x,
+      y: y
+    });
+    return c;
+  }
+  if (shape.type === "L") {
+    var _c = [];
+    for (var _y = 0; _y < shape.h; _y++) for (var _x = 0; _x < shape.w; _x++) if (!(_x >= shape.w - shape.cx && _y < shape.cy)) _c.push({
+      x: _x,
+      y: _y
+    });
+    return _c;
+  }
+  if (shape.type === "draw") return (shape.cells || []).map(function (c) {
+    return _objectSpread({}, c);
+  });
+  return [];
+}
 function floodFillInterior(cells) {
   if (!cells.length) return cells;
   var maxX = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
@@ -141,46 +227,51 @@ function floodFillInterior(cells) {
   var set = new Set(cells.map(function (c) {
     return "".concat(c.x, ",").concat(c.y);
   }));
-  // BFS from (−1,−1) to find all exterior cells within extended bounding box
-  var ext = new Set();
-  var queue = [[-1, -1]];
-  ext.add("-1,-1");
+  var ext = new Set(["-1,-1"]);
+  var q = [[-1, -1]];
   var _loop = function _loop() {
-    var _queue$shift = queue.shift(),
-      _queue$shift2 = _slicedToArray(_queue$shift, 2),
-      x = _queue$shift2[0],
-      y = _queue$shift2[1];
+    var _q$shift = q.shift(),
+      _q$shift2 = _slicedToArray(_q$shift, 2),
+      x = _q$shift2[0],
+      y = _q$shift2[1];
     [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(function (_ref2) {
       var _ref3 = _slicedToArray(_ref2, 2),
         dx = _ref3[0],
         dy = _ref3[1];
       var nx = x + dx,
-        ny = y + dy;
-      var key = "".concat(nx, ",").concat(ny);
-      if (nx >= -1 && nx <= maxX && ny >= -1 && ny <= maxY && !ext.has(key) && !set.has(key)) {
-        ext.add(key);
-        queue.push([nx, ny]);
+        ny = y + dy,
+        k = "".concat(nx, ",").concat(ny);
+      if (nx >= -1 && nx <= maxX && ny >= -1 && ny <= maxY && !ext.has(k) && !set.has(k)) {
+        ext.add(k);
+        q.push([nx, ny]);
       }
     });
   };
-  while (queue.length) {
+  while (q.length) {
     _loop();
   }
-  // All cells inside bounding box that are not exterior = interior to fill
   var filled = _toConsumableArray(cells);
   for (var y = 0; y <= maxY; y++) for (var x = 0; x <= maxX; x++) {
-    var key = "".concat(x, ",").concat(y);
-    if (!ext.has(key) && !set.has(key)) filled.push({
+    var k = "".concat(x, ",").concat(y);
+    if (!ext.has(k) && !set.has(k)) filled.push({
       x: x,
       y: y
     });
   }
   return filled;
 }
-// ─── ANALYTICAL PLACEMENT ALGORITHM ──────────────────────────────────────────
-// Find minimum nx×ny grid such that half-diagonal of each sub-rect ≤ reach
+function calcCoverage(cells, devices, reach) {
+  if (!cells.length) return 0;
+  var r2 = reach * reach;
+  return Math.round(cells.filter(function (c) {
+    return devices.some(function (d) {
+      var dx = c.x + .5 - d.x,
+        dy = c.y + .5 - d.y;
+      return dx * dx + dy * dy <= r2;
+    });
+  }).length / cells.length * 100);
+}
 function optimalGrid(W, H, reach) {
-  // Use effective dimensions: cell centers are 0.5m from walls
   var eW = Math.max(1, W - 1),
     eH = Math.max(1, H - 1);
   var nx = 1,
@@ -188,47 +279,20 @@ function optimalGrid(W, H, reach) {
   var ok = function ok(nx, ny) {
     var hw = eW / nx / 2,
       hh = eH / ny / 2;
-    return Math.sqrt(hw * hw + hh * hh) <= reach;
+    return hw * hw + hh * hh <= reach * reach;
   };
   while (!ok(nx, ny)) {
-    // Try each increment, pick the one that reduces max corner dist more
-    var dX = Math.sqrt(Math.pow(W / (nx + 1) / 2, 2) + Math.pow(H / ny / 2, 2));
-    var dY = Math.sqrt(Math.pow(W / nx / 2, 2) + Math.pow(H / (ny + 1) / 2, 2));
+    var dX = Math.pow(eW / (nx + 1) / 2, 2) + Math.pow(eH / ny / 2, 2);
+    var dY = Math.pow(eW / nx / 2, 2) + Math.pow(eH / (ny + 1) / 2, 2);
     if (dX <= dY) nx++;else ny++;
   }
-  var devices = [];
-  for (var i = 0; i < nx; i++) for (var j = 0; j < ny; j++) devices.push({
-    x: (i + 0.5) * W / nx,
-    y: (j + 0.5) * H / ny
+  var devs = [];
+  for (var i = 0; i < nx; i++) for (var j = 0; j < ny; j++) devs.push({
+    x: (i + .5) * W / nx,
+    y: (j + .5) * H / ny
   });
-  return devices;
+  return devs;
 }
-
-// Get building cells in world coords (1m grid)
-function getBuildingCells(shape) {
-  var cells = [];
-  if (shape.type === "rect") {
-    for (var y = 0; y < shape.h; y++) for (var x = 0; x < shape.w; x++) cells.push({
-      x: x,
-      y: y
-    });
-  } else if (shape.type === "L") {
-    // L = full w×h minus top-right cx×cy cutout
-    for (var _y = 0; _y < shape.h; _y++) for (var _x = 0; _x < shape.w; _x++) {
-      if (!(_x >= shape.w - shape.cx && _y < shape.cy)) cells.push({
-        x: _x,
-        y: _y
-      });
-    }
-  } else if (shape.type === "draw") {
-    return shape.cells.map(function (c) {
-      return _objectSpread({}, c);
-    });
-  }
-  return cells;
-}
-
-// Dense-grid greedy: try candidate positions every 1m over bounding box
 function denseGreedy(cells, reach) {
   if (!cells.length) return [];
   var maxX = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
@@ -237,20 +301,16 @@ function denseGreedy(cells, reach) {
   var maxY = Math.max.apply(Math, _toConsumableArray(cells.map(function (c) {
     return c.y;
   }))) + 1;
-  var cellSet = new Set(cells.map(function (c) {
-    return "".concat(c.x, ",").concat(c.y);
-  }));
-  // Generate candidates every 1m
   var cands = [];
-  for (var cx = 0.5; cx <= maxX; cx += 1) for (var cy = 0.5; cy <= maxY; cy += 1) cands.push({
+  for (var cx = .5; cx <= maxX; cx += 1) for (var cy = .5; cy <= maxY; cy += 1) cands.push({
     x: cx,
     y: cy
   });
-  // Greedy selection
   var uncov = new Set(cells.map(function (_, i) {
     return i;
   }));
   var devs = [];
+  var r2 = reach * reach;
   var iter = 0;
   var _loop2 = function _loop2() {
     iter++;
@@ -262,7 +322,7 @@ function denseGreedy(cells, reach) {
       uncov.forEach(function (j) {
         var dx = cells[j].x + .5 - c.x,
           dy = cells[j].y + .5 - c.y;
-        if (dx * dx + dy * dy <= reach * reach) score++;
+        if (dx * dx + dy * dy <= r2) score++;
       });
       if (score > bestScore) {
         bestScore = score;
@@ -283,7 +343,7 @@ function denseGreedy(cells, reach) {
     _toConsumableArray(uncov).forEach(function (j) {
       var dx = cells[j].x + .5 - best.x,
         dy = cells[j].y + .5 - best.y;
-      if (dx * dx + dy * dy <= reach * reach) uncov.delete(j);
+      if (dx * dx + dy * dy <= r2) uncov.delete(j);
     });
   };
   while (uncov.size > 0 && iter < 200) {
@@ -291,137 +351,261 @@ function denseGreedy(cells, reach) {
   }
   return devs;
 }
-// Auto-place for rectangles and L-shapes analytically
 function autoPlaceDevices(shape, reach) {
-  if (shape.type === "rect") {
-    return optimalGrid(shape.w, shape.h, reach);
-  } else if (shape.type === "L") {
-    // Use dense-grid greedy on full L-shape for best results
-    return denseGreedy(getBuildingCells(shape), reach);
-  } else if (shape.type === "draw") {
-    // Greedy for custom shapes
-    var cells = shape.cells;
-    if (!cells.length) return [];
-    var uncov = new Set(cells.map(function (_, i) {
-      return i;
-    }));
-    var devs = [];
-    var iter = 0;
-    var _loop4 = function _loop4() {
-      iter++;
-      var best = null,
-        bestCount = 0;
-      var sample = _toConsumableArray(iter < 10 ? uncov : _toConsumableArray(uncov).filter(function (_, i) {
-        return i % 2 === 0;
-      }));
-      sample.forEach(function (ci) {
-        var cx = cells[ci].x + .5,
-          cy = cells[ci].y + .5;
-        var cnt = 0;
-        uncov.forEach(function (j) {
-          var dx = cells[j].x + .5 - cx,
-            dy = cells[j].y + .5 - cy;
-          if (Math.sqrt(dx * dx + dy * dy) <= reach) cnt++;
-        });
-        if (cnt > bestCount) {
-          bestCount = cnt;
-          best = {
-            x: cx,
-            y: cy
-          };
-        }
-      });
-      if (!best) {
-        var ci = _toConsumableArray(uncov)[0];
-        best = {
-          x: cells[ci].x + .5,
-          y: cells[ci].y + .5
-        };
-      }
-      devs.push(best);
-      _toConsumableArray(uncov).forEach(function (j) {
-        var dx = cells[j].x + .5 - best.x,
-          dy = cells[j].y + .5 - best.y;
-        if (Math.sqrt(dx * dx + dy * dy) <= reach) uncov.delete(j);
-      });
-    };
-    while (uncov.size > 0 && iter < 100) {
-      _loop4();
-    }
-    return devs;
-  }
+  if (shape.type === "rect") return optimalGrid(shape.w, shape.h, reach);
+  if (shape.type === "L") return denseGreedy(getBuildingCells(shape), reach);
+  if (shape.type === "draw") return denseGreedy(shape.cells || [], reach);
   return [];
 }
 
-// Coverage: % of building cells within reach of any device
-function calcCoverage(cells, devices, reach) {
-  if (!cells.length) return 0;
-  var covered = cells.filter(function (c) {
-    return devices.some(function (d) {
+// ─── PDF EXPORT ───────────────────────────────────────────────────────────────
+function exportPDF(shape, devices, reach, customer, results) {
+  if (!window.jspdf) {
+    alert("PDF se načítá, zkuste za chvíli.");
+    return;
+  }
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
+  var cells = getBuildingCells(shape);
+  var bW = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray((shape.cells || []).map(function (c) {
+    return c.x + 1;
+  })))) : shape.w;
+  var bH = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray((shape.cells || []).map(function (c) {
+    return c.y + 1;
+  })))) : shape.h;
+  var margin = reach + MARGIN_M;
+  var csize = 700;
+  var sc = Math.min(csize / (bW + 2 * margin), csize / (bH + 2 * margin));
+  var ox = margin * sc,
+    oy = margin * sc;
+  // Offscreen canvas
+  var oc = document.createElement("canvas");
+  oc.width = oc.height = csize;
+  var ctx = oc.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, csize, csize);
+  ctx.strokeStyle = "#E0D8CC";
+  ctx.lineWidth = .5;
+  for (var x = 0; x <= Math.ceil((csize - ox) / sc); x++) {
+    ctx.beginPath();
+    ctx.moveTo(ox + x * sc, 0);
+    ctx.lineTo(ox + x * sc, csize);
+    ctx.strokeStyle = x % 5 === 0 ? "#C8C0B0" : "#E0D8CC";
+    ctx.stroke();
+  }
+  for (var y = 0; y <= Math.ceil((csize - oy) / sc); y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, oy + y * sc);
+    ctx.lineTo(csize, oy + y * sc);
+    ctx.strokeStyle = y % 5 === 0 ? "#C8C0B0" : "#E0D8CC";
+    ctx.stroke();
+  }
+  cells.forEach(function (c) {
+    var cov = devices.some(function (d) {
       var dx = c.x + .5 - d.x,
         dy = c.y + .5 - d.y;
-      return Math.sqrt(dx * dx + dy * dy) <= reach;
+      return dx * dx + dy * dy <= reach * reach;
     });
-  }).length;
-  return Math.round(covered / cells.length * 100);
+    ctx.fillStyle = cov ? "#BDE8C0" : "#D4EDD6";
+    ctx.fillRect(ox + c.x * sc + .5, oy + c.y * sc + .5, sc - 1, sc - 1);
+  });
+  ctx.strokeStyle = "#3A7D3E";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([]);
+  if (shape.type === "rect") {
+    ctx.strokeRect(ox, oy, bW * sc, bH * sc);
+  } else if (shape.type === "L") {
+    var w = shape.w,
+      h = shape.h,
+      cx = shape.cx,
+      cy = shape.cy;
+    ctx.beginPath();
+    [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]].forEach(function (_ref4, i) {
+      var _ref5 = _slicedToArray(_ref4, 2),
+        x = _ref5[0],
+        y = _ref5[1];
+      i === 0 ? ctx.moveTo(ox + x * sc, oy + y * sc) : ctx.lineTo(ox + x * sc, oy + y * sc);
+    });
+    ctx.closePath();
+    ctx.stroke();
+  } else {
+    (shape.cells || []).forEach(function (c) {
+      var all = new Set((shape.cells || []).map(function (c) {
+        return "".concat(c.x, ",").concat(c.y);
+      }));
+      var px = ox + c.x * sc,
+        py = oy + c.y * sc;
+      ctx.strokeStyle = "#3A7D3E";
+      ctx.lineWidth = 1.5;
+      if (!all.has("".concat(c.x, ",").concat(c.y - 1))) {
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + sc, py);
+        ctx.stroke();
+      }
+      if (!all.has("".concat(c.x, ",").concat(c.y + 1))) {
+        ctx.beginPath();
+        ctx.moveTo(px, py + sc);
+        ctx.lineTo(px + sc, py + sc);
+        ctx.stroke();
+      }
+      if (!all.has("".concat(c.x - 1, ",").concat(c.y))) {
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px, py + sc);
+        ctx.stroke();
+      }
+      if (!all.has("".concat(c.x + 1, ",").concat(c.y))) {
+        ctx.beginPath();
+        ctx.moveTo(px + sc, py);
+        ctx.lineTo(px + sc, py + sc);
+        ctx.stroke();
+      }
+    });
+  }
+  devices.forEach(function (d, i) {
+    var px = ox + d.x * sc,
+      py = oy + d.y * sc;
+    ctx.beginPath();
+    ctx.arc(px, py, reach * sc, 0, Math.PI * 2);
+    ctx.fillStyle = "#3A7D3E12";
+    ctx.fill();
+    ctx.strokeStyle = "#3A7D3E";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(px, py, Math.max(8, sc * .4), 0, Math.PI * 2);
+    ctx.fillStyle = "#3A7D3E";
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold ".concat(Math.max(9, Math.round(sc * .35)), "px Arial");
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(i + 1, px, py);
+  });
+  ctx.fillStyle = "#487A4C";
+  ctx.fillRect(12, csize - 20, 5 * sc, 3);
+  ctx.fillStyle = "#9C9080";
+  ctx.font = "11px Arial";
+  ctx.textAlign = "left";
+  ctx.fillText("5 m", 12 + 5 * sc + 6, csize - 12);
+  // Text canvas
+  var tc = document.createElement("canvas");
+  tc.width = 800;
+  var hasResults = results && (results.humidityBefore || results.humidityAfter || results.notes);
+  tc.height = hasResults ? 320 : 240;
+  var tctx = tc.getContext("2d");
+  tctx.fillStyle = "#FFFFFF";
+  tctx.fillRect(0, 0, tc.width, tc.height);
+  tctx.fillStyle = "#3A7D3E";
+  tctx.font = "bold 28px Arial";
+  tctx.fillText("Goorn IQ Planner", 16, 36);
+  tctx.fillStyle = "#685E52";
+  tctx.font = "15px Arial";
+  var ty = 66;
+  if (customer.name) tctx.fillText("Z\xE1kazn\xEDk: ".concat(customer.name).concat(customer.city ? " · " + customer.city : ""), 16, ty), ty += 22;
+  tctx.fillText("Plocha: ~".concat(cells.length, " m\xB2  \xB7  Podla\u017E\xED: ").concat(customer.floors, "  \xB7  P\u0159\xEDstroje: ").concat(devices.length), 16, ty);
+  ty += 22;
+  tctx.fillText("Pokryt\xED: ".concat(calcCoverage(cells, devices, reach), " % plochy  \xB7  Dosah p\u0159\xEDstroje: ").concat(reach, " m"), 16, ty);
+  ty += 28;
+  tctx.fillStyle = "#3A7D3E";
+  tctx.font = "bold 16px Arial";
+  tctx.fillText("Doporu\u010Den\xFD po\u010Det p\u0159\xEDstroj\u016F: ".concat(devices.length), 16, ty);
+  ty += 22;
+  tctx.fillStyle = "#685E52";
+  tctx.font = "14px Arial";
+  devices.forEach(function (d, i) {
+    tctx.fillText("P\u0159\xEDstroj ".concat(i + 1, ": ").concat(d.x.toFixed(1), " m od lev\xE9ho okraje, ").concat(d.y.toFixed(1), " m od horn\xEDho okraje"), 16, ty);
+    ty += 20;
+  });
+  if (customer.notes) {
+    ty += 4;
+    tctx.fillText("Pozn\xE1mka: ".concat(customer.notes), 16, ty);
+    ty += 20;
+  }
+  if (hasResults) {
+    ty += 8;
+    tctx.fillStyle = "#7A6249";
+    tctx.font = "bold 14px Arial";
+    tctx.fillText("Výsledky odvlhčování:", 16, ty);
+    ty += 20;
+    tctx.fillStyle = "#685E52";
+    tctx.font = "13px Arial";
+    if (results.humidityBefore) tctx.fillText("Vlhkost p\u0159ed: ".concat(results.humidityBefore), 16, ty), ty += 18;
+    if (results.humidityAfter) tctx.fillText("Vlhkost po: ".concat(results.humidityAfter), 16, ty), ty += 18;
+    if (results.measureDate) tctx.fillText("Datum m\u011B\u0159en\xED: ".concat(results.measureDate), 16, ty), ty += 18;
+    if (results.notes) tctx.fillText("Pozn\xE1mka: ".concat(results.notes), 16, ty), ty += 18;
+  }
+  var fc = document.createElement("canvas");
+  fc.width = 800;
+  fc.height = 60;
+  var fctx = fc.getContext("2d");
+  fctx.fillStyle = "#FFFFFF";
+  fctx.fillRect(0, 0, 800, 60);
+  fctx.fillStyle = "#9C9080";
+  fctx.font = "11px Arial";
+  fctx.fillText("Umístění přístrojů určuje technik při instalaci. Pozice jsou orientační.", 12, 16);
+  fctx.fillText("Dosah 14 m (optimální), tolerance ±2 m. Koule dosahu pokrývá 28 m vertikálně.", 12, 32);
+  fctx.fillStyle = "#D4622A";
+  fctx.font = "11px Arial";
+  fctx.fillText("Pro GOORN  ©  ⁶⁷〽️  with Claude.ai  2026", 12, 52);
+  var m = 10,
+    iW = 210 - 2 * m;
+  doc.addImage(tc.toDataURL("image/png"), "PNG", m, m, iW, iW * tc.height / tc.width);
+  var hH = iW * tc.height / tc.width;
+  doc.addImage(oc.toDataURL("image/png"), "PNG", m, m + hH + 4, iW, iW);
+  var fY = m + hH + 4 + iW + 4;
+  if (fY < 285) doc.addImage(fc.toDataURL("image/png"), "PNG", m, fY, iW, iW * fc.height / fc.width);
+  var fn = "GoornIQ_".concat(customer.name || "plan", "_").concat(new Date().toLocaleDateString("cs-CZ").replace(/\./g, "-"), ".pdf");
+  doc.save(fn);
 }
 
-// ─── CANVAS RENDERER ──────────────────────────────────────────────────────────
-function PlanCanvas(_ref4) {
-  var shape = _ref4.shape,
-    devices = _ref4.devices,
-    setDevices = _ref4.setDevices,
-    reach = _ref4.reach,
-    zoom = _ref4.zoom,
-    drawMode = _ref4.drawMode,
-    drawnCells = _ref4.drawnCells,
-    setDrawnCells = _ref4.setDrawnCells,
-    onManualPlace = _ref4.onManualPlace;
+// ─── CANVAS ───────────────────────────────────────────────────────────────────
+function PlanCanvas(_ref6) {
+  var shape = _ref6.shape,
+    devices = _ref6.devices,
+    setDevices = _ref6.setDevices,
+    reach = _ref6.reach,
+    zoom = _ref6.zoom,
+    drawMode = _ref6.drawMode,
+    drawnCells = _ref6.drawnCells,
+    setDrawnCells = _ref6.setDrawnCells,
+    onManualPlace = _ref6.onManualPlace;
   var canvasRef = useRef(null);
   var drawingRef = useRef(false);
   var containerRef = useRef(null);
-  var _useState = useState(600),
-    _useState2 = _slicedToArray(_useState, 2),
-    canvasSize = _useState2[0],
-    setCanvasSize = _useState2[1];
-
-  // Resize observer
+  var _useState5 = useState(600),
+    _useState6 = _slicedToArray(_useState5, 2),
+    canvasSize = _useState6[0],
+    setCanvasSize = _useState6[1];
   useEffect(function () {
     if (!containerRef.current) return;
-    var ro = new ResizeObserver(function (entries) {
-      var w = entries[0].contentRect.width;
-      setCanvasSize(Math.min(Math.floor(w), 1000));
+    var ro = new ResizeObserver(function (e) {
+      return setCanvasSize(Math.min(Math.floor(e[0].contentRect.width), 1000));
     });
     ro.observe(containerRef.current);
     return function () {
       return ro.disconnect();
     };
   }, []);
-
-  // Compute scale & offsets
-  var cells = useMemo(function () {
-    return getBuildingCells(shape);
-  }, [shape, drawnCells]);
-  var bW = shape.type === "draw" ? Math.max.apply(Math, [DRAW_GRID_M].concat(_toConsumableArray(drawnCells.map(function (c) {
+  var bW = shape.type === "draw" ? Math.max.apply(Math, [DRAW_GRID_M].concat(_toConsumableArray((drawnCells || []).map(function (c) {
     return c.x + 1;
   })))) : shape.w;
-  var bH = shape.type === "draw" ? Math.max.apply(Math, [DRAW_GRID_M].concat(_toConsumableArray(drawnCells.map(function (c) {
+  var bH = shape.type === "draw" ? Math.max.apply(Math, [DRAW_GRID_M].concat(_toConsumableArray((drawnCells || []).map(function (c) {
     return c.y + 1;
   })))) : shape.h;
   var baseScale = useMemo(function () {
-    var worldW = shape.type === "draw" ? DRAW_GRID_M + 2 * MARGIN_M : bW + 2 * (reach + MARGIN_M);
-    var worldH = shape.type === "draw" ? DRAW_GRID_M + 2 * MARGIN_M : bH + 2 * (reach + MARGIN_M);
-    return Math.min(canvasSize / worldW, canvasSize / worldH);
+    var wW = shape.type === "draw" ? DRAW_GRID_M + 2 * MARGIN_M : bW + 2 * (reach + MARGIN_M);
+    var wH = shape.type === "draw" ? DRAW_GRID_M + 2 * MARGIN_M : bH + 2 * (reach + MARGIN_M);
+    return Math.min(canvasSize / wW, canvasSize / wH);
   }, [bW, bH, reach, canvasSize, shape.type]);
   var scale = baseScale * zoom;
-  // Always center the building in the canvas
   var offX = canvasSize / 2 - bW / 2 * scale;
   var offY = canvasSize / 2 - bH / 2 * scale;
-  var w2c = function w2c(wx, wy) {
-    return [offX + wx * scale, offY + wy * scale];
-  };
-
-  // Draw
   useEffect(function () {
     var canvas = canvasRef.current;
     if (!canvas) return;
@@ -429,113 +613,90 @@ function PlanCanvas(_ref4) {
     var csz = canvasSize;
     canvas.width = csz;
     canvas.height = csz;
-
-    // Background
     ctx.fillStyle = "#F8F5EF";
     ctx.fillRect(0, 0, csz, csz);
-
-    // Grid lines
-    var gridStart_wx = Math.floor(-offX / scale);
-    var gridEnd_wx = Math.ceil((csz - offX) / scale);
-    var gridStart_wy = Math.floor(-offY / scale);
-    var gridEnd_wy = Math.ceil((csz - offY) / scale);
-    for (var x = gridStart_wx; x <= gridEnd_wx; x++) {
+    var gsx = Math.floor(-offX / scale),
+      gex = Math.ceil((csz - offX) / scale);
+    var gsy = Math.floor(-offY / scale),
+      gey = Math.ceil((csz - offY) / scale);
+    for (var x = gsx; x <= gex; x++) {
       var px = offX + x * scale;
       ctx.beginPath();
       ctx.moveTo(px, 0);
       ctx.lineTo(px, csz);
       ctx.strokeStyle = x % 5 === 0 ? "#C8C0B0" : "#E0D8CC";
-      ctx.lineWidth = x % 5 === 0 ? 0.8 : 0.4;
+      ctx.lineWidth = x % 5 === 0 ? .8 : .4;
       ctx.stroke();
     }
-    for (var y = gridStart_wy; y <= gridEnd_wy; y++) {
+    for (var y = gsy; y <= gey; y++) {
       var py = offY + y * scale;
       ctx.beginPath();
       ctx.moveTo(0, py);
       ctx.lineTo(csz, py);
       ctx.strokeStyle = y % 5 === 0 ? "#C8C0B0" : "#E0D8CC";
-      ctx.lineWidth = y % 5 === 0 ? 0.8 : 0.4;
+      ctx.lineWidth = y % 5 === 0 ? .8 : .4;
       ctx.stroke();
     }
-
-    // Building cells
-    var activeCells = shape.type === "draw" ? drawnCells : getBuildingCells(shape);
+    var activeCells = shape.type === "draw" ? drawnCells || [] : getBuildingCells(shape);
+    var r2 = reach * reach;
     activeCells.forEach(function (c) {
-      var _w2c = w2c(c.x, c.y),
-        _w2c2 = _slicedToArray(_w2c, 2),
-        px = _w2c2[0],
-        py = _w2c2[1];
-      var covered = devices.some(function (d) {
+      var cov = devices.some(function (d) {
         var dx = c.x + .5 - d.x,
           dy = c.y + .5 - d.y;
-        return Math.sqrt(dx * dx + dy * dy) <= reach;
+        return dx * dx + dy * dy <= r2;
       });
-      ctx.fillStyle = covered ? "#BDE8C0" : "#D4EDD6";
-      ctx.fillRect(px + 0.5, py + 0.5, scale - 1, scale - 1);
+      ctx.fillStyle = cov ? "#BDE8C0" : "#D4EDD6";
+      ctx.fillRect(offX + c.x * scale + .5, offY + c.y * scale + .5, scale - 1, scale - 1);
     });
-
-    // Building outline
     ctx.strokeStyle = "#487A4C";
     ctx.lineWidth = 2;
     ctx.setLineDash([]);
     if (shape.type === "rect") {
-      var _w2c3 = w2c(0, 0),
-        _w2c4 = _slicedToArray(_w2c3, 2),
-        _px = _w2c4[0],
-        _py = _w2c4[1];
-      ctx.strokeRect(_px, _py, shape.w * scale, shape.h * scale);
+      ctx.strokeRect(offX, offY, bW * scale, bH * scale);
     } else if (shape.type === "L") {
       var w = shape.w,
         h = shape.h,
         cx = shape.cx,
         cy = shape.cy;
       ctx.beginPath();
-      var pts = [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]];
-      pts.forEach(function (_ref5, i) {
-        var _ref6 = _slicedToArray(_ref5, 2),
-          x = _ref6[0],
-          y = _ref6[1];
-        var _w2c5 = w2c(x, y),
-          _w2c6 = _slicedToArray(_w2c5, 2),
-          px = _w2c6[0],
-          py = _w2c6[1];
+      [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]].forEach(function (_ref7, i) {
+        var _ref8 = _slicedToArray(_ref7, 2),
+          x = _ref8[0],
+          y = _ref8[1];
+        var px = offX + x * scale,
+          py = offY + y * scale;
         i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       });
       ctx.closePath();
       ctx.stroke();
-    } else if (shape.type === "draw" && drawnCells.length > 0) {
-      // Outline via cells - just draw each cell border
+    } else if (shape.type === "draw") {
+      var allSet = new Set(activeCells.map(function (c) {
+        return "".concat(c.x, ",").concat(c.y);
+      }));
       activeCells.forEach(function (c) {
-        var _w2c7 = w2c(c.x, c.y),
-          _w2c8 = _slicedToArray(_w2c7, 2),
-          px = _w2c8[0],
-          py = _w2c8[1];
-        var has = function has(dx, dy) {
-          return activeCells.some(function (o) {
-            return o.x === c.x + dx && o.y === c.y + dy;
-          });
-        };
+        var px = offX + c.x * scale,
+          py = offY + c.y * scale;
         ctx.strokeStyle = "#487A4C";
         ctx.lineWidth = 1.5;
-        if (!has(0, -1)) {
+        if (!allSet.has("".concat(c.x, ",").concat(c.y - 1))) {
           ctx.beginPath();
           ctx.moveTo(px, py);
           ctx.lineTo(px + scale, py);
           ctx.stroke();
         }
-        if (!has(0, 1)) {
+        if (!allSet.has("".concat(c.x, ",").concat(c.y + 1))) {
           ctx.beginPath();
           ctx.moveTo(px, py + scale);
           ctx.lineTo(px + scale, py + scale);
           ctx.stroke();
         }
-        if (!has(-1, 0)) {
+        if (!allSet.has("".concat(c.x - 1, ",").concat(c.y))) {
           ctx.beginPath();
           ctx.moveTo(px, py);
           ctx.lineTo(px, py + scale);
           ctx.stroke();
         }
-        if (!has(1, 0)) {
+        if (!allSet.has("".concat(c.x + 1, ",").concat(c.y))) {
           ctx.beginPath();
           ctx.moveTo(px + scale, py);
           ctx.lineTo(px + scale, py + scale);
@@ -543,14 +704,9 @@ function PlanCanvas(_ref4) {
         }
       });
     }
-
-    // Device reach circles
     devices.forEach(function (d, i) {
-      var _w2c9 = w2c(d.x, d.y),
-        _w2c0 = _slicedToArray(_w2c9, 2),
-        px = _w2c0[0],
-        py = _w2c0[1];
-      // Tolerance ring
+      var px = offX + d.x * scale,
+        py = offY + d.y * scale;
       ctx.beginPath();
       ctx.arc(px, py, REACH_MAX * scale, 0, Math.PI * 2);
       ctx.strokeStyle = "#B6724840";
@@ -558,7 +714,6 @@ function PlanCanvas(_ref4) {
       ctx.setLineDash([6, 4]);
       ctx.stroke();
       ctx.setLineDash([]);
-      // Main reach
       ctx.beginPath();
       ctx.arc(px, py, reach * scale, 0, Math.PI * 2);
       ctx.fillStyle = "#3A7D3E14";
@@ -566,47 +721,29 @@ function PlanCanvas(_ref4) {
       ctx.strokeStyle = "#3A7D3E";
       ctx.lineWidth = 2;
       ctx.stroke();
-      // Device dot
       ctx.beginPath();
-      ctx.arc(px, py, Math.max(8, scale * 0.4), 0, Math.PI * 2);
+      ctx.arc(px, py, Math.max(8, scale * .4), 0, Math.PI * 2);
       ctx.fillStyle = "#3A7D3E";
       ctx.fill();
       ctx.fillStyle = "#fff";
-      ctx.font = "bold ".concat(Math.max(9, Math.round(scale * 0.35)), "px Inter,sans-serif");
+      ctx.font = "bold ".concat(Math.max(9, Math.round(scale * .35)), "px Inter,sans-serif");
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(i + 1, px, py);
     });
-
-    // Scale bar
-    var barM = 5;
-    var barPx = barM * scale;
-    var bx = 12,
-      by = csz - 18;
-    ctx.fillStyle = C.green;
-    ctx.fillRect(bx, by, barPx, 3);
-    ctx.fillStyle = C.textLight;
+    ctx.fillStyle = "#487A4C";
+    ctx.fillRect(12, csz - 20, 5 * scale, 3);
+    ctx.fillStyle = "#9C9080";
     ctx.font = "10px Inter,sans-serif";
     ctx.textAlign = "left";
     ctx.textBaseline = "bottom";
-    ctx.fillText("".concat(barM, " m"), bx, by - 2);
-    ctx.fillText("1 čtverec = 1 metr", bx + barPx + 8, by - 2);
-
-    // Draw mode hint
-    if (shape.type === "draw" && drawMode) {
-      ctx.fillStyle = "#487A4C88";
-      ctx.font = "12px Inter,sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillText("Kreslete půdorys dotykem nebo myší", csz / 2, 8);
-    }
-  }, [shape, devices, reach, zoom, drawnCells, canvasSize, scale, offX, offY]);
-
-  // Event handlers
+    ctx.fillText("5 m", 12 + 5 * scale + 6, csz - 6);
+    ctx.fillText("1 čtverec = 1 metr", 12 + 5 * scale + 36, csz - 6);
+  }, [shape, devices, reach, zoom, drawnCells, canvasSize, scale, offX, offY, bW, bH]);
   var getWorldPos = useCallback(function (e, canvas) {
     var rect = canvas.getBoundingClientRect();
-    var scaleX = canvas.width / rect.width;
-    var scaleY = canvas.height / rect.height;
+    var scaleX = canvas.width / rect.width,
+      scaleY = canvas.height / rect.height;
     var cx, cy;
     if (e.touches) {
       cx = (e.touches[0].clientX - rect.left) * scaleX;
@@ -630,7 +767,7 @@ function PlanCanvas(_ref4) {
     var gx = Math.floor(wx),
       gy = Math.floor(wy);
     if (drawMode && shape.type === "draw") {
-      if (!drawingRef.current && !isMove) drawingRef.current = true;
+      if (!isMove) drawingRef.current = true;
       if (drawingRef.current) {
         setDrawnCells(function (prev) {
           if (prev.some(function (c) {
@@ -643,14 +780,11 @@ function PlanCanvas(_ref4) {
         });
       }
     } else if (!isMove) {
-      // Place/remove device
-      var activeCells = shape.type === "draw" ? drawnCells : getBuildingCells(shape);
+      var activeCells = shape.type === "draw" ? drawnCells || [] : getBuildingCells(shape);
       var snap = {
-        x: gx + 0.5,
-        y: gy + 0.5
+        x: gx + .5,
+        y: gy + .5
       };
-      // Pixel-based tolerance so small buildings are still clickable
-      var toleranceM = Math.max(1.0, 18 / scale);
       setDevices(function (prev) {
         var idx = prev.findIndex(function (d) {
           var dx = (d.x - snap.x) * scale,
@@ -660,7 +794,6 @@ function PlanCanvas(_ref4) {
         if (idx >= 0) return prev.filter(function (_, i) {
           return i !== idx;
         });
-        // Only add device if click is inside building
         if (!activeCells.some(function (c) {
           return c.x === gx && c.y === gy;
         })) return prev;
@@ -668,7 +801,7 @@ function PlanCanvas(_ref4) {
         return [].concat(_toConsumableArray(prev), [snap]);
       });
     }
-  }, [drawMode, shape, drawnCells, setDrawnCells, setDevices, getWorldPos]);
+  }, [drawMode, shape, drawnCells, setDrawnCells, setDevices, getWorldPos, scale, onManualPlace]);
   return React.createElement("div", {
     ref: containerRef,
     style: {
@@ -706,197 +839,24 @@ function PlanCanvas(_ref4) {
   }));
 }
 
-// ─── PDF EXPORT ───────────────────────────────────────────────────────────────
-function exportPDF(shape, devices, reach, customerName, customerCity, notes, floors) {
-  if (!window.jspdf) {
-    alert("PDF knihovna se načítá, zkuste za chvíli.");
-    return;
-  }
-  var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4"
-  });
-  var pageW = 210,
-    pageH = 297;
-
-  // Render plan to offscreen canvas for PDF
-  var csize = 700;
-  var oc = document.createElement("canvas");
-  oc.width = oc.height = csize;
-  var ctx = oc.getContext("2d");
-  var cells = getBuildingCells(shape);
-  var bW = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray(cells.map(function (c) {
-    return c.x + 1;
-  })))) : shape.w;
-  var bH = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray(cells.map(function (c) {
-    return c.y + 1;
-  })))) : shape.h;
-  var margin = reach + MARGIN_M;
-  var sc = Math.min(csize / (bW + 2 * margin), csize / (bH + 2 * margin));
-  var ox = margin * sc,
-    oy = margin * sc;
-  ctx.fillStyle = "#FFFFFF";
-  ctx.fillRect(0, 0, csize, csize);
-  // Grid
-  ctx.strokeStyle = "#E8E0D4";
-  ctx.lineWidth = 0.5;
-  for (var x = 0; x <= Math.ceil((csize - ox) / sc); x++) {
-    ctx.beginPath();
-    ctx.moveTo(ox + x * sc, 0);
-    ctx.lineTo(ox + x * sc, csize);
-    ctx.strokeStyle = x % 5 === 0 ? "#C8C0B0" : "#E8E0D4";
-    ctx.stroke();
-  }
-  for (var y = 0; y <= Math.ceil((csize - oy) / sc); y++) {
-    ctx.beginPath();
-    ctx.moveTo(0, oy + y * sc);
-    ctx.lineTo(csize, oy + y * sc);
-    ctx.strokeStyle = y % 5 === 0 ? "#C8C0B0" : "#E8E0D4";
-    ctx.stroke();
-  }
-  // Cells
-  cells.forEach(function (c) {
-    var cov = devices.some(function (d) {
-      return Math.sqrt(Math.pow(c.x + .5 - d.x, 2) + Math.pow(c.y + .5 - d.y, 2)) <= reach;
-    });
-    ctx.fillStyle = cov ? "#BDE8C0" : "#D4EDD6";
-    ctx.fillRect(ox + c.x * sc + 0.5, oy + c.y * sc + 0.5, sc - 1, sc - 1);
-  });
-  // Outline
-  ctx.strokeStyle = "#3A7D3E";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([]);
-  if (shape.type === "rect") {
-    ctx.strokeRect(ox, oy, bW * sc, bH * sc);
-  } else if (shape.type === "L") {
-    var w = shape.w,
-      h = shape.h,
-      cx = shape.cx,
-      cy = shape.cy;
-    ctx.beginPath();
-    [[0, 0], [w - cx, 0], [w - cx, cy], [w, cy], [w, h], [0, h]].forEach(function (_ref7, i) {
-      var _ref8 = _slicedToArray(_ref7, 2),
-        x = _ref8[0],
-        y = _ref8[1];
-      i === 0 ? ctx.moveTo(ox + x * sc, oy + y * sc) : ctx.lineTo(ox + x * sc, oy + y * sc);
-    });
-    ctx.closePath();
-    ctx.stroke();
-  }
-  // Devices
-  devices.forEach(function (d, i) {
-    var px = ox + d.x * sc,
-      py = oy + d.y * sc;
-    ctx.beginPath();
-    ctx.arc(px, py, reach * sc, 0, Math.PI * 2);
-    ctx.fillStyle = "#3A7D3E12";
-    ctx.fill();
-    ctx.strokeStyle = "#3A7D3E";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(px, py, Math.max(8, sc * 0.4), 0, Math.PI * 2);
-    ctx.fillStyle = "#3A7D3E";
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold ".concat(Math.max(9, Math.round(sc * 0.35)), "px Arial");
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(i + 1, px, py);
-  });
-  // Scale bar
-  ctx.fillStyle = "#487A4C";
-  ctx.fillRect(12, csize - 20, 5 * sc, 3);
-  ctx.fillStyle = "#9C9080";
-  ctx.font = "11px Arial";
-  ctx.textAlign = "left";
-  ctx.fillText("5 m", 12 + 5 * sc + 6, csize - 12);
-
-  // Now build text on separate canvas (ensures Czech rendering)
-  var tc = document.createElement("canvas");
-  tc.width = 800;
-  tc.height = 220;
-  var tctx = tc.getContext("2d");
-  tctx.fillStyle = "#FFFFFF";
-  tctx.fillRect(0, 0, 800, 220);
-  tctx.fillStyle = "#3A7D3E";
-  tctx.font = "bold 28px Arial";
-  tctx.fillText("Goorn IQ Planner", 16, 36);
-  tctx.fillStyle = "#685E52";
-  tctx.font = "15px Arial";
-  var ty = 66;
-  if (customerName) tctx.fillText("Z\xE1kazn\xEDk: ".concat(customerName).concat(customerCity ? " · " + customerCity : ""), 16, ty), ty += 24;
-  tctx.fillText("Plocha: ~".concat(cells.length, " m\xB2  \xB7  Podla\u017E\xED: ").concat(floors, "  \xB7  P\u0159\xEDstroje: ").concat(devices.length), 16, ty);
-  ty += 24;
-  var cov = calcCoverage(cells, devices, reach);
-  tctx.fillText("Pokryt\xED: ".concat(cov, " % plochy  \xB7  Dosah p\u0159\xEDstroje: ").concat(reach, " m"), 16, ty);
-  ty += 30;
-  tctx.fillStyle = "#3A7D3E";
-  tctx.font = "bold 16px Arial";
-  tctx.fillText("Doporu\u010Den\xFD po\u010Det p\u0159\xEDstroj\u016F: ".concat(devices.length), 16, ty);
-  ty += 22;
-  tctx.fillStyle = "#685E52";
-  tctx.font = "14px Arial";
-  devices.forEach(function (d, i) {
-    tctx.fillText("P\u0159\xEDstroj ".concat(i + 1, ": ").concat(d.x.toFixed(1), " m od lev\xE9ho okraje, ").concat(d.y.toFixed(1), " m od horn\xEDho okraje"), 16, ty);
-    ty += 20;
-  });
-  if (notes) {
-    ty += 6;
-    tctx.fillText("Pozn\xE1mka: ".concat(notes), 16, ty);
-  }
-  var fc = document.createElement("canvas");
-  fc.width = 800;
-  fc.height = 60;
-  var fctx = fc.getContext("2d");
-  fctx.fillStyle = "#FFFFFF";
-  fctx.fillRect(0, 0, 800, 60);
-  fctx.fillStyle = "#9C9080";
-  fctx.font = "11px Arial";
-  fctx.fillText("Umístění přístrojů určuje technik při instalaci. Pozice jsou orientační.", 12, 16);
-  fctx.fillText("Dosah 14 m (optimální), tolerance ±2 m. Koule dosahu pokrývá 28 m vertikálně.", 12, 32);
-  fctx.fillStyle = "#D4622A";
-  fctx.font = "11px Arial";
-  fctx.fillText("Pro GOORN  ©  ⁶⁷〽️  with Claude.ai  2026", 12, 52);
-
-  // Assemble PDF
-  var m = 10; // margin mm
-  var iW = pageW - 2 * m;
-  // Header text image
-  doc.addImage(tc.toDataURL("image/png"), "PNG", m, m, iW, iW * tc.height / tc.width);
-  var hImgH = iW * tc.height / tc.width;
-  // Plan image
-  var planH = iW;
-  doc.addImage(oc.toDataURL("image/png"), "PNG", m, m + hImgH + 4, iW, planH);
-  // Footer
-  var footerY = m + hImgH + 4 + planH + 4;
-  if (footerY < pageH - 20) {
-    doc.addImage(fc.toDataURL("image/png"), "PNG", m, footerY, iW, iW * fc.height / fc.width);
-  }
-  var fn = "GoornIQ_".concat(customerName || "plan", "_").concat(new Date().toLocaleDateString("cs-CZ").replace(/\./g, "-"), ".pdf");
-  doc.save(fn);
-}
-
 // ─── SHAPE PANEL ─────────────────────────────────────────────────────────────
 function ShapePanel(_ref9) {
   var _React3;
   var shape = _ref9.shape,
     onApply = _ref9.onApply;
-  var _useState3 = useState(shape.type === "L" ? "L" : "rect"),
-    _useState4 = _slicedToArray(_useState3, 2),
-    preset = _useState4[0],
-    setPreset = _useState4[1];
-  var _useState5 = useState({
+  var _useState7 = useState(shape.type === "L" ? "L" : shape.type === "draw" ? "draw" : "rect"),
+    _useState8 = _slicedToArray(_useState7, 2),
+    preset = _useState8[0],
+    setPreset = _useState8[1];
+  var _useState9 = useState({
       w: "12",
       h: "8",
       cx: "5",
       cy: "4"
     }),
-    _useState6 = _slicedToArray(_useState5, 2),
-    dims = _useState6[0],
-    setDims = _useState6[1];
+    _useState0 = _slicedToArray(_useState9, 2),
+    dims = _useState0[0],
+    setDims = _useState0[1];
   var setStr = function setStr(k, v) {
     return setDims(function (d) {
       return _objectSpread(_objectSpread({}, d), {}, _defineProperty({}, k, v.replace(/[^0-9]/g, '')));
@@ -1064,7 +1024,7 @@ function ShapePanel(_ref9) {
       borderRadius: 6,
       padding: "8px 10px"
     }
-  }, "Kreslete půdorys dotykem nebo myší po rastru. Aktivujte tlačítkem ✏️ Kreslit."), React.createElement("button", {
+  }, "Kreslete půdorys dotykem nebo myší. Aktivujte tlačítkem ✏️ Kreslit."), React.createElement("button", {
     onClick: apply,
     style: {
       padding: "10px",
@@ -1079,60 +1039,78 @@ function ShapePanel(_ref9) {
   }, "✓ Použít tvar"));
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
-function App() {
-  var _React4, _React5;
-  var _useState7 = useState({
+// ─── PLAN EDITOR ─────────────────────────────────────────────────────────────
+function PlanEditor(_ref10) {
+  var _plan$shape, _React4, _React5, _React6;
+  var plan = _ref10.plan,
+    onSave = _ref10.onSave,
+    onBack = _ref10.onBack,
+    isSaving = _ref10.isSaving;
+  var _useState1 = useState(plan.shape || {
       type: "rect",
       w: 12,
       h: 8
     }),
-    _useState8 = _slicedToArray(_useState7, 2),
-    shape = _useState8[0],
-    setShape = _useState8[1];
-  var _useState9 = useState([]),
-    _useState0 = _slicedToArray(_useState9, 2),
-    devices = _useState0[0],
-    setDevices = _useState0[1];
-  var _useState1 = useState(REACH_DEFAULT),
     _useState10 = _slicedToArray(_useState1, 2),
-    reach = _useState10[0],
-    setReach = _useState10[1];
-  var _useState11 = useState(1),
+    shape = _useState10[0],
+    setShape = _useState10[1];
+  var _useState11 = useState(plan.devices || []),
     _useState12 = _slicedToArray(_useState11, 2),
-    zoom = _useState12[0],
-    setZoom = _useState12[1];
-  var _useState13 = useState(false),
+    devices = _useState12[0],
+    setDevices = _useState12[1];
+  var _useState13 = useState(plan.reach || REACH_DEFAULT),
     _useState14 = _slicedToArray(_useState13, 2),
-    drawMode = _useState14[0],
-    setDrawMode = _useState14[1];
-  var _useState15 = useState(false),
+    reach = _useState14[0],
+    setReach = _useState14[1];
+  var _useState15 = useState(1),
     _useState16 = _slicedToArray(_useState15, 2),
-    isAutoPlaced = _useState16[0],
-    setIsAutoPlaced = _useState16[1];
-  var _useState17 = useState([]),
+    zoom = _useState16[0],
+    setZoom = _useState16[1];
+  var _useState17 = useState(false),
     _useState18 = _slicedToArray(_useState17, 2),
-    drawnCells = _useState18[0],
-    setDrawnCells = _useState18[1];
-  var _useState19 = useState("plan"),
+    drawMode = _useState18[0],
+    setDrawMode = _useState18[1];
+  var _useState19 = useState(false),
     _useState20 = _slicedToArray(_useState19, 2),
-    tab = _useState20[0],
-    setTab = _useState20[1];
-  var _useState21 = useState({
+    isAutoPlaced = _useState20[0],
+    setIsAutoPlaced = _useState20[1];
+  var _useState21 = useState(((_plan$shape = plan.shape) === null || _plan$shape === void 0 ? void 0 : _plan$shape.cells) || []),
+    _useState22 = _slicedToArray(_useState21, 2),
+    drawnCells = _useState22[0],
+    setDrawnCells = _useState22[1];
+  var _useState23 = useState("plan"),
+    _useState24 = _slicedToArray(_useState23, 2),
+    tab = _useState24[0],
+    setTab = _useState24[1];
+  var _useState25 = useState(plan.customer || {
       name: "",
       city: "",
       notes: "",
-      floors: 1
+      floors: 1,
+      cadastreUrl: ""
     }),
-    _useState22 = _slicedToArray(_useState21, 2),
-    customer = _useState22[0],
-    setCustomer = _useState22[1];
+    _useState26 = _slicedToArray(_useState25, 2),
+    customer = _useState26[0],
+    setCustomer = _useState26[1];
+  var _useState27 = useState(plan.results || {
+      humidityBefore: "",
+      humidityAfter: "",
+      measureDate: "",
+      notes: ""
+    }),
+    _useState28 = _slicedToArray(_useState27, 2),
+    results = _useState28[0],
+    setResults = _useState28[1];
   var setCust = function setCust(k, v) {
     return setCustomer(function (c) {
       return _objectSpread(_objectSpread({}, c), {}, _defineProperty({}, k, v));
     });
   };
-  var custFilled = !!(customer.name.trim() || customer.city.trim());
+  var setRes = function setRes(k, v) {
+    return setResults(function (r) {
+      return _objectSpread(_objectSpread({}, r), {}, _defineProperty({}, k, v));
+    });
+  };
   var cells = useMemo(function () {
     return getBuildingCells(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
@@ -1142,6 +1120,8 @@ function App() {
   var coverage = useMemo(function () {
     return calcCoverage(cells, devices, reach);
   }, [cells, devices, reach]);
+  var custFilled = !!(customer.name.trim() || customer.city.trim());
+  var hasResults = !!(results.humidityBefore || results.humidityAfter || results.notes);
   var handleApplyShape = function handleApplyShape(s) {
     setShape(s);
     setDevices([]);
@@ -1154,30 +1134,49 @@ function App() {
     }), reach));
     setIsAutoPlaced(true);
   };
+  var handleSave = function handleSave() {
+    return onSave(_objectSpread(_objectSpread({}, plan), {}, {
+      shape: _objectSpread(_objectSpread({}, shape), {}, {
+        cells: drawnCells
+      }),
+      devices: devices,
+      reach: reach,
+      customer: customer,
+      results: results,
+      updatedAt: new Date().toISOString(),
+      displayName: customer.name || "Bez jména"
+    }));
+  };
   var handlePDF = function handlePDF() {
     return exportPDF(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
-    }), devices, reach, customer.name, customer.city, customer.notes, customer.floors);
+    }), devices, reach, customer, results);
   };
   var covColor = coverage >= 100 ? C.greenBright : coverage >= 80 ? C.orange : C.danger;
-  var tabBtn = function tabBtn(id, label) {
-    var isCust = id === "info";
-    var badge = isCust ? custFilled ? " 🟢" : " ❗" : "";
-    return React.createElement("button", {
-      onClick: function onClick() {
-        return setTab(id);
-      },
-      style: {
-        padding: "8px 14px",
-        borderRadius: 7,
-        border: isCust && !custFilled ? "2px solid ".concat(C.orange) : "none",
-        cursor: "pointer",
-        fontSize: 13,
-        background: tab === id ? C.green : C.surfaceAlt,
-        color: tab === id ? "#fff" : C.textMid,
-        fontWeight: tab === id ? 700 : 500
-      }
-    }, label + badge);
+  var inp = {
+    width: "100%",
+    border: "1px solid ".concat(C.border),
+    borderRadius: 7,
+    padding: "9px 10px",
+    fontSize: 13,
+    color: C.text,
+    background: C.surfaceAlt,
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: F
+  };
+  var lbl = {
+    fontSize: 9,
+    color: C.textLight,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: ".5px",
+    marginBottom: 4,
+    display: "block"
+  };
+  var tabs = ["plan", "info", "results"];
+  var tabLabel = function tabLabel(id) {
+    return id === "plan" ? "Plán" : id === "info" ? "Zákazník" + (custFilled ? " 🟢" : " ❗") : "Výsledky" + (hasResults ? " 🟢" : "");
   };
   return React.createElement("div", {
     style: {
@@ -1192,51 +1191,99 @@ function App() {
     style: {
       background: C.surface,
       borderBottom: "1px solid ".concat(C.border),
-      padding: "0 14px",
+      padding: "0 12px",
       height: 52,
       display: "flex",
       alignItems: "center",
-      justifyContent: "space-between"
+      justifyContent: "space-between",
+      gap: 8
     }
   }, React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
-      gap: 10
+      gap: 8
     }
-  }, React.createElement("div", {
+  }, React.createElement("button", {
+    onClick: onBack,
     style: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
-      background: C.green,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 10,
-      fontWeight: 800,
-      color: "#fff",
-      letterSpacing: "-0.5px"
+      padding: "6px 10px",
+      borderRadius: 7,
+      border: "1px solid ".concat(C.border),
+      background: C.surfaceAlt,
+      fontSize: 13,
+      cursor: "pointer",
+      color: C.textMid
     }
-  }, "IQ"), React.createElement("div", null, React.createElement("div", {
+  }, "← Zpět"), React.createElement("div", {
     style: {
       fontWeight: 800,
-      fontSize: 14,
+      fontSize: 13,
       color: C.text
     }
-  }, "Goorn IQ Planner"), React.createElement("div", {
-    style: {
-      fontSize: 9,
-      color: C.textLight
-    }
-  }, "Návrh rozmístění přístrojů"))), React.createElement("div", {
+  }, customer.name || "Nový plán")), React.createElement("div", {
     style: {
       display: "flex",
-      gap: 6
+      gap: 6,
+      alignItems: "center"
     }
-  }, tabBtn("plan", "Plán"), tabBtn("info", "Zákazník"))), React.createElement("div", {
+  }, React.createElement("button", {
+    onClick: handleSave,
+    disabled: isSaving,
     style: {
-      padding: 14,
+      padding: "7px 14px",
+      borderRadius: 7,
+      border: "none",
+      background: isSaving ? C.greenPale : C.green,
+      color: isSaving ? C.green : "#fff",
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, isSaving ? "Ukládám…" : "💾 Uložit"), React.createElement("button", {
+    onClick: handlePDF,
+    style: {
+      padding: "7px 12px",
+      borderRadius: 7,
+      border: "none",
+      background: C.brown,
+      color: "#fff",
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "↓ PDF"))),
+  // Tab bar
+  React.createElement("div", {
+    style: {
+      background: C.surface,
+      borderBottom: "1px solid ".concat(C.border),
+      display: "flex",
+      padding: "0 12px",
+      gap: 4
+    }
+  }, tabs.map(function (id) {
+    return React.createElement("button", {
+      key: id,
+      onClick: function onClick() {
+        return setTab(id);
+      },
+      style: {
+        padding: "10px 12px",
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        fontSize: 12,
+        color: tab === id ? C.green : C.textMid,
+        fontWeight: tab === id ? 700 : 500,
+        borderBottom: tab === id ? "2px solid ".concat(C.green) : "2px solid transparent"
+      }
+    }, tabLabel(id));
+  })),
+  // Content
+  React.createElement("div", {
+    style: {
+      padding: 12,
       maxWidth: 960,
       margin: "0 auto",
       display: "flex",
@@ -1244,13 +1291,11 @@ function App() {
       gap: 12
     }
   },
-  // ── PLAN TAB ──
+  // PLAN TAB
   tab === "plan" && React.createElement(React.Fragment, null, React.createElement(ShapePanel, {
     shape: shape,
     onApply: handleApplyShape
-  }),
-  // Stats bar
-  (_React4 = React).createElement.apply(_React4, ["div", {
+  }), (_React4 = React).createElement.apply(_React4, ["div", {
     style: {
       display: "flex",
       gap: 8,
@@ -1268,10 +1313,10 @@ function App() {
     label: "Pokrytí",
     value: "".concat(coverage, " %"),
     color: covColor
-  }].map(function (_ref10) {
-    var label = _ref10.label,
-      value = _ref10.value,
-      color = _ref10.color;
+  }].map(function (_ref11) {
+    var label = _ref11.label,
+      value = _ref11.value,
+      color = _ref11.color;
     return React.createElement("div", {
       key: label,
       style: {
@@ -1288,14 +1333,6 @@ function App() {
         color: C.textLight,
         fontWeight: 700,
         textTransform: "uppercase",
-        letterSpacing: ".5px"
-      }
-    }), React.createElement("div", {
-      style: {
-        fontSize: 9,
-        color: C.textLight,
-        fontWeight: 700,
-        textTransform: "uppercase",
         letterSpacing: ".5px",
         marginBottom: 2
       }
@@ -1307,9 +1344,7 @@ function App() {
         lineHeight: 1
       }
     }, value));
-  })), [
-  // Dosah slider
-  React.createElement("div", {
+  })), [React.createElement("div", {
     style: {
       flex: 1,
       minWidth: 100,
@@ -1345,9 +1380,7 @@ function App() {
       fontWeight: 700,
       color: C.green
     }
-  }, "".concat(reach, " m")))])),
-  // Toolbar
-  React.createElement("div", {
+  }, "".concat(reach, " m")))])), React.createElement("div", {
     style: {
       display: "flex",
       gap: 6,
@@ -1366,7 +1399,7 @@ function App() {
       fontSize: 13,
       fontWeight: 700,
       cursor: "pointer",
-      opacity: !isAutoPlaced && devices.length > 0 ? 0.6 : 1
+      opacity: !isAutoPlaced && devices.length > 0 ? .6 : 1
     }
   }, isAutoPlaced && devices.length > 0 ? "⚡ Automatický návrh ✓" : "⚡ Automatický návrh"), shape.type === "draw" && React.createElement("button", {
     onClick: function onClick() {
@@ -1387,8 +1420,8 @@ function App() {
     }
   }, drawMode ? "✏️ Kreslit: ZAP" : "✏️ Kreslit: VYP"), shape.type === "draw" && React.createElement("button", {
     onClick: function onClick() {
-      return setDrawnCells(function (prev) {
-        return floodFillInterior(prev);
+      return setDrawnCells(function (p) {
+        return floodFillInterior(p);
       });
     },
     style: {
@@ -1414,7 +1447,7 @@ function App() {
       border: "1px solid ".concat(C.danger, "44"),
       color: C.danger
     }
-  }, "✕ Smazat kresbu"), React.createElement("button", {
+  }, "✕ Kresbu"), React.createElement("button", {
     onClick: function onClick() {
       return setZoom(function (z) {
         return Math.min(z * 1.3, 8);
@@ -1446,7 +1479,7 @@ function App() {
   }, "fit"), React.createElement("button", {
     onClick: function onClick() {
       return setZoom(function (z) {
-        return Math.max(z / 1.3, 0.2);
+        return Math.max(z / 1.3, .2);
       });
     },
     style: {
@@ -1472,27 +1505,13 @@ function App() {
       border: "1px solid ".concat(C.danger, "44"),
       color: C.danger
     }
-  }, "✕ Přístroje"), React.createElement("button", {
-    onClick: handlePDF,
-    style: {
-      padding: "10px 12px",
-      borderRadius: 7,
-      border: "none",
-      background: C.brown,
-      color: "#fff",
-      fontSize: 12,
-      fontWeight: 700,
-      cursor: "pointer"
-    }
-  }, "↓ PDF")), React.createElement("div", {
+  }, "✕ Přístroje")), React.createElement("div", {
     style: {
       fontSize: 10,
       color: C.textLight,
       padding: "0 2px"
     }
-  }, drawMode ? "Kreslete půdorys prstem. Pak vypněte kreslení a klikejte pro umístění přístrojů." : "Kliknutím do půdorysu přidáte / odeberete přístroj. Nebo použijte Automatický návrh."),
-  // Canvas
-  React.createElement(PlanCanvas, {
+  }, drawMode ? "Kreslete půdorys prstem. Vypněte kreslení pro umístění přístrojů." : "Kliknutím do půdorysu přidáte / odeberete přístroj."), React.createElement(PlanCanvas, {
     shape: _objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
     }),
@@ -1506,9 +1525,7 @@ function App() {
     onManualPlace: function onManualPlace() {
       return setIsAutoPlaced(false);
     }
-  }),
-  // Device list
-  devices.length > 0 && React.createElement("div", {
+  }), devices.length > 0 && React.createElement("div", {
     style: {
       background: C.surface,
       border: "1px solid ".concat(C.border),
@@ -1577,11 +1594,10 @@ function App() {
     style: {
       marginTop: 8,
       fontSize: 10,
-      color: C.textLight,
-      lineHeight: 1.5
+      color: C.textLight
     }
-  }, "* Přesné umístění určuje technik při instalaci. Pozice jsou orientační."))),
-  // ── INFO TAB ──
+  }, "* Přesné umístění určuje technik při instalaci."))),
+  // ZÁKAZNÍK TAB
   tab === "info" && (_React5 = React).createElement.apply(_React5, ["div", {
     style: {
       background: C.surface,
@@ -1600,50 +1616,25 @@ function App() {
       textTransform: "uppercase",
       letterSpacing: ".5px"
     }
-  }, "Zákazník")].concat(_toConsumableArray([["name", "Jméno / Příjmení", "Novák Jan"], ["city", "Město / Adresa", "Trutnov, Nádražní 12"], ["notes", "Poznámka", "Sklep + přízemí, stáří budovy..."]].map(function (_ref11) {
-    var _ref12 = _slicedToArray(_ref11, 3),
-      k = _ref12[0],
-      label = _ref12[1],
-      ph = _ref12[2];
+  }, "Zákazník")].concat(_toConsumableArray([["name", "Jméno / Příjmení", "Novák Jan"], ["city", "Město / Adresa", "Trutnov, Nádražní 12"], ["notes", "Poznámka", "Sklep + přízemí, stáří budovy..."], ["cadastreUrl", "Odkaz – katastr / Google Fotky", "https://..."]].map(function (_ref12) {
+    var _ref13 = _slicedToArray(_ref12, 3),
+      k = _ref13[0],
+      label = _ref13[1],
+      ph = _ref13[2];
     return React.createElement("div", {
       key: k
-    }, React.createElement("div", {
-      style: {
-        fontSize: 9,
-        color: C.textLight,
-        fontWeight: 700,
-        textTransform: "uppercase",
-        letterSpacing: ".5px",
-        marginBottom: 4
-      }
+    }, React.createElement("span", {
+      style: lbl
     }, label), React.createElement("input", {
-      value: customer[k],
+      value: customer[k] || "",
       onChange: function onChange(e) {
         return setCust(k, e.target.value);
       },
       placeholder: ph,
-      style: {
-        width: "100%",
-        border: "1px solid ".concat(C.border),
-        borderRadius: 7,
-        padding: "9px 10px",
-        fontSize: 13,
-        color: C.text,
-        background: C.surfaceAlt,
-        outline: "none",
-        boxSizing: "border-box",
-        fontFamily: F
-      }
+      style: inp
     }));
-  })), [React.createElement("div", null, React.createElement("div", {
-    style: {
-      fontSize: 9,
-      color: C.textLight,
-      fontWeight: 700,
-      textTransform: "uppercase",
-      letterSpacing: ".5px",
-      marginBottom: 6
-    }
+  })), [React.createElement("div", null, React.createElement("span", {
+    style: lbl
   }, "Počet podlaží"), React.createElement("div", {
     style: {
       display: "flex",
@@ -1666,8 +1657,85 @@ function App() {
         color: customer.floors === f ? C.green : C.textMid,
         fontWeight: customer.floors === f ? 700 : 500
       }
-    }, f === 1 ? "1 podlaží (přízemí)" : "2 podlaží (sklep + přízemí)");
+    }, f === 1 ? "1 podlaží" : "2 podlaží (sklep + přízemí)");
   })))])),
+  // VÝSLEDKY TAB
+  tab === "results" && React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, (_React6 = React).createElement.apply(_React6, ["div", {
+    style: {
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.textMid,
+      textTransform: "uppercase",
+      letterSpacing: ".5px"
+    }
+  }, "Výsledky odvlhčování"), React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.textLight,
+      lineHeight: 1.6,
+      background: C.brownPale,
+      borderRadius: 6,
+      padding: "8px 10px"
+    }
+  }, "Vyplňte po kontrolní návštěvě (4–12 měsíců po instalaci). Výsledky se zobrazí v PDF jako argument pro zákazníka.")].concat(_toConsumableArray([["humidityBefore", "Vlhkost PŘED instalací", "např. 28 % sklep, 18 % přízemí"], ["humidityAfter", "Vlhkost PO instalaci", "např. 12 % sklep, 9 % přízemí"], ["measureDate", "Datum měření výsledků", "18. 5. 2027"], ["notes", "Poznámka k výsledkům", "Zákazník spokojen, viditelné zlepšení..."]].map(function (_ref14) {
+    var _ref15 = _slicedToArray(_ref14, 3),
+      k = _ref15[0],
+      label = _ref15[1],
+      ph = _ref15[2];
+    return React.createElement("div", {
+      key: k
+    }, React.createElement("span", {
+      style: lbl
+    }, label), React.createElement("input", {
+      value: results[k] || "",
+      onChange: function onChange(e) {
+        return setRes(k, e.target.value);
+      },
+      placeholder: ph,
+      style: inp
+    }));
+  })))), hasResults && React.createElement("div", {
+    style: {
+      background: C.greenPale,
+      border: "1px solid ".concat(C.green, "44"),
+      borderRadius: 10,
+      padding: 14
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.green,
+      marginBottom: 8
+    }
+  }, "✅ Výsledky budou zobrazeny v PDF"), results.humidityBefore && React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.text
+    }
+  }, "P\u0159ed: ".concat(results.humidityBefore)), results.humidityAfter && React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.greenBright,
+      fontWeight: 700
+    }
+  }, "Po: ".concat(results.humidityAfter)))),
   // Footer
   React.createElement("div", {
     style: {
@@ -1675,7 +1743,6 @@ function App() {
       padding: "10px 0 6px",
       fontSize: 9,
       color: C.textLight,
-      lineHeight: 1.8,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -1690,6 +1757,627 @@ function App() {
   }, "Pro GOORN © ⁶⁷〽️ with Claude.ai"), React.createElement(ClaudeLogo, {
     size: 16
   }), React.createElement("span", null, "2026"))));
+}
+
+// ─── PLANS LIST ───────────────────────────────────────────────────────────────
+function PlansList(_ref16) {
+  var _React7;
+  var plans = _ref16.plans,
+    onNew = _ref16.onNew,
+    onOpen = _ref16.onOpen,
+    onDelete = _ref16.onDelete,
+    user = _ref16.user,
+    onSignOut = _ref16.onSignOut;
+  var _useState29 = useState(null),
+    _useState30 = _slicedToArray(_useState29, 2),
+    delConfirm = _useState30[0],
+    setDelConfirm = _useState30[1];
+  var fmtDate = function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    return "".concat(d.getDate(), ".").concat(d.getMonth() + 1, ".").concat(d.getFullYear());
+  };
+  return React.createElement("div", {
+    style: {
+      fontFamily: F,
+      background: C.bg,
+      minHeight: "100vh",
+      color: C.text
+    }
+  },
+  // Header
+  React.createElement("div", {
+    style: {
+      background: C.surface,
+      borderBottom: "1px solid ".concat(C.border),
+      padding: "0 14px",
+      height: 52,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between"
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      background: C.green,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 10,
+      fontWeight: 800,
+      color: "#fff"
+    }
+  }, "IQ"), React.createElement("div", null, React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 14,
+      color: C.text
+    }
+  }, "Goorn IQ Planner"), React.createElement("div", {
+    style: {
+      fontSize: 9,
+      color: C.textLight
+    }
+  }, "Plány rozmístění přístrojů"))), React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, user.photoURL && React.createElement("img", {
+    src: user.photoURL,
+    style: {
+      width: 26,
+      height: 26,
+      borderRadius: "50%"
+    },
+    alt: ""
+  }), React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.textMid
+    }
+  }), React.createElement("button", {
+    onClick: onSignOut,
+    style: {
+      padding: "5px 10px",
+      borderRadius: 6,
+      border: "1px solid ".concat(C.border),
+      background: C.surfaceAlt,
+      fontSize: 11,
+      cursor: "pointer",
+      color: C.textMid
+    }
+  }, "Odhlásit"))), (_React7 = React).createElement.apply(_React7, ["div", {
+    style: {
+      padding: 14,
+      maxWidth: 760,
+      margin: "0 auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  },
+  // New plan button
+  React.createElement("button", {
+    onClick: onNew,
+    style: {
+      width: "100%",
+      padding: "14px",
+      borderRadius: 10,
+      border: "none",
+      background: C.green,
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8
+    }
+  }, "+ Nový plán"),
+  // Plans count
+  plans.length > 0 && React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.textLight,
+      paddingLeft: 2
+    }
+  }, "".concat(plans.length, " ulo\u017Een\xFDch pl\xE1n\u016F")),
+  // Plans list
+  plans.length === 0 && React.createElement("div", {
+    style: {
+      padding: 48,
+      textAlign: "center",
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 12,
+      color: C.textLight,
+      fontSize: 13
+    }
+  }, "Zatím žádné uložené plány. Vytvořte první!")].concat(_toConsumableArray(plans.map(function (plan) {
+    var _plan$results, _plan$results2, _plan$customer, _plan$customer2, _React8, _plan$devices, _plan$customer3;
+    var hasRes = !!((_plan$results = plan.results) !== null && _plan$results !== void 0 && _plan$results.humidityBefore || (_plan$results2 = plan.results) !== null && _plan$results2 !== void 0 && _plan$results2.humidityAfter);
+    return React.createElement("div", {
+      key: plan.id,
+      style: {
+        background: C.surface,
+        border: "1px solid ".concat(C.border),
+        borderRadius: 10,
+        overflow: "hidden"
+      }
+    }, React.createElement("div", {
+      onClick: function onClick() {
+        return onOpen(plan);
+      },
+      style: {
+        padding: "14px 14px 10px",
+        cursor: "pointer"
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 8
+      }
+    }, React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 14,
+        color: C.text
+      }
+    }, ((_plan$customer = plan.customer) === null || _plan$customer === void 0 ? void 0 : _plan$customer.name) || "Bez jména"), ((_plan$customer2 = plan.customer) === null || _plan$customer2 === void 0 ? void 0 : _plan$customer2.city) && React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.textLight,
+        marginTop: 2
+      }
+    }, plan.customer.city)), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        flexShrink: 0
+      }
+    }, hasRes && React.createElement("div", {
+      style: {
+        background: C.greenBrightPale,
+        border: "1px solid ".concat(C.greenBright, "44"),
+        borderRadius: 20,
+        padding: "2px 8px",
+        fontSize: 10,
+        color: C.greenBright,
+        fontWeight: 700
+      }
+    }, "✓ Výsledky"), React.createElement("div", {
+      style: {
+        fontSize: 10,
+        color: C.textLight
+      }
+    }, fmtDate(plan.updatedAt)))), (_React8 = React).createElement.apply(_React8, ["div", {
+      style: {
+        display: "flex",
+        gap: 12,
+        marginTop: 8
+      }
+    }].concat(_toConsumableArray([{
+      label: "Přístroje",
+      value: ((_plan$devices = plan.devices) === null || _plan$devices === void 0 ? void 0 : _plan$devices.length) || 0,
+      color: C.greenBright
+    }, {
+      label: "Plocha",
+      value: plan.shape ? "~".concat(getBuildingCells(_objectSpread(_objectSpread({}, plan.shape), {}, {
+        cells: plan.shape.cells || []
+      })).length, " m\xB2") : "—",
+      color: C.brown
+    }, {
+      label: "Podlaží",
+      value: ((_plan$customer3 = plan.customer) === null || _plan$customer3 === void 0 ? void 0 : _plan$customer3.floors) || 1,
+      color: C.brownMid
+    }].map(function (_ref17) {
+      var label = _ref17.label,
+        value = _ref17.value,
+        color = _ref17.color;
+      return React.createElement("div", {
+        key: label,
+        style: {
+          fontSize: 10,
+          color: C.textLight
+        }
+      }, React.createElement("span", {
+        style: {
+          fontWeight: 700,
+          color: color
+        }
+      }, value), " ", label);
+    }))))),
+    // Delete
+    delConfirm === plan.id ? React.createElement("div", {
+      style: {
+        padding: "10px 14px",
+        borderTop: "1px solid ".concat(C.borderLight),
+        background: C.dangerPale,
+        display: "flex",
+        gap: 8,
+        alignItems: "center"
+      }
+    }, React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: C.danger,
+        flex: 1
+      }
+    }, "Smazat tento plán?"), React.createElement("button", {
+      onClick: function onClick(e) {
+        e.stopPropagation();
+        onDelete(plan.id);
+        setDelConfirm(null);
+      },
+      style: {
+        padding: "5px 12px",
+        borderRadius: 6,
+        border: "none",
+        background: C.danger,
+        color: "#fff",
+        fontSize: 12,
+        cursor: "pointer"
+      }
+    }, "Smazat"), React.createElement("button", {
+      onClick: function onClick(e) {
+        e.stopPropagation();
+        setDelConfirm(null);
+      },
+      style: {
+        padding: "5px 12px",
+        borderRadius: 6,
+        border: "1px solid ".concat(C.border),
+        background: C.surface,
+        fontSize: 12,
+        cursor: "pointer"
+      }
+    }, "Ne")) : React.createElement("div", {
+      style: {
+        padding: "6px 14px",
+        borderTop: "1px solid ".concat(C.borderLight),
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }
+    }, React.createElement("button", {
+      onClick: function onClick(e) {
+        e.stopPropagation();
+        onOpen(plan);
+      },
+      style: {
+        padding: "5px 12px",
+        borderRadius: 6,
+        border: "none",
+        background: C.green,
+        color: "#fff",
+        fontSize: 11,
+        cursor: "pointer",
+        fontWeight: 600
+      }
+    }, "Otevřít"), React.createElement("button", {
+      onClick: function onClick(e) {
+        e.stopPropagation();
+        setDelConfirm(plan.id);
+      },
+      style: {
+        padding: "5px 10px",
+        borderRadius: 6,
+        border: "1px solid ".concat(C.danger, "33"),
+        background: "transparent",
+        color: C.danger,
+        fontSize: 11,
+        cursor: "pointer"
+      }
+    }, "Smazat")));
+  })), [
+  // Footer
+  React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "10px 0",
+      fontSize: 9,
+      color: C.textLight,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6
+    }
+  }, React.createElement("span", {
+    style: {
+      fontWeight: 700,
+      color: C.brownMid,
+      fontSize: 10
+    }
+  }, "Pro GOORN © ⁶⁷〽️ with Claude.ai"), React.createElement(ClaudeLogo, {
+    size: 16
+  }), React.createElement("span", null, "2026"))])));
+}
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+function LoginScreen(_ref18) {
+  var onLogin = _ref18.onLogin,
+    error = _ref18.error;
+  return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: C.bg,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+      fontFamily: F
+    }
+  }, React.createElement("div", {
+    style: {
+      background: C.surface,
+      borderRadius: 16,
+      padding: 40,
+      width: "100%",
+      maxWidth: 360,
+      boxShadow: "0 8px 32px rgba(0,0,0,.12)",
+      textAlign: "center"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 12,
+      background: C.green,
+      margin: "0 auto 16px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 14,
+      fontWeight: 800,
+      color: "#fff",
+      letterSpacing: "-1px"
+    }
+  }, "IQ"), React.createElement("div", {
+    style: {
+      fontWeight: 800,
+      fontSize: 22,
+      color: C.text,
+      marginBottom: 4
+    }
+  }, "Goorn IQ Planner"), React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.textLight,
+      marginBottom: 28
+    }
+  }, "Databáze plánů odvlhčování"), error && React.createElement("div", {
+    style: {
+      background: C.dangerPale,
+      border: "1px solid ".concat(C.danger, "44"),
+      borderRadius: 8,
+      padding: "8px 12px",
+      fontSize: 12,
+      color: C.danger,
+      marginBottom: 16
+    }
+  }, error), React.createElement("button", {
+    onClick: onLogin,
+    style: {
+      width: "100%",
+      padding: "12px",
+      borderRadius: 10,
+      border: "none",
+      background: C.green,
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer",
+      marginBottom: 16,
+      boxShadow: "0 3px 12px ".concat(C.green, "44")
+    }
+  }, "Přihlásit se přes Google"), React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: C.textLight,
+      lineHeight: 1.6
+    }
+  }, "Data synchronizována přes Firebase", React.createElement("br"), "Mobil ↔ Tablet · Pro GOORN © ⁶⁷〽️")));
+}
+
+// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+function App() {
+  var _useState31 = useState(null),
+    _useState32 = _slicedToArray(_useState31, 2),
+    user = _useState32[0],
+    setUser = _useState32[1];
+  var _useState33 = useState(true),
+    _useState34 = _slicedToArray(_useState33, 2),
+    authLoading = _useState34[0],
+    setAuthLoading = _useState34[1];
+  var _useState35 = useState(null),
+    _useState36 = _slicedToArray(_useState35, 2),
+    authError = _useState36[0],
+    setAuthError = _useState36[1];
+  var _useState37 = useState(null),
+    _useState38 = _slicedToArray(_useState37, 2),
+    currentPlan = _useState38[0],
+    setCurrentPlan = _useState38[1];
+  var _useState39 = useState(false),
+    _useState40 = _slicedToArray(_useState39, 2),
+    isSaving = _useState40[0],
+    setIsSaving = _useState40[1];
+  useEffect(function () {
+    var unsub = auth.onAuthStateChanged(function (u) {
+      setUser(u);
+      setAuthLoading(false);
+    });
+    return unsub;
+  }, []);
+  var _usePlans = usePlans(user === null || user === void 0 ? void 0 : user.uid),
+    plans = _usePlans.plans,
+    ready = _usePlans.ready,
+    savePlan = _usePlans.savePlan,
+    deletePlan = _usePlans.deletePlan;
+  var signIn = /*#__PURE__*/function () {
+    var _ref19 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var p, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            setAuthError(null);
+            _context.p = 1;
+            p = new firebase.auth.GoogleAuthProvider();
+            _context.n = 2;
+            return auth.signInWithPopup(p);
+          case 2:
+            _context.n = 4;
+            break;
+          case 3:
+            _context.p = 3;
+            _t = _context.v;
+            setAuthError(_t.message);
+          case 4:
+            return _context.a(2);
+        }
+      }, _callee, null, [[1, 3]]);
+    }));
+    return function signIn() {
+      return _ref19.apply(this, arguments);
+    };
+  }();
+  var handleNew = function handleNew() {
+    return setCurrentPlan({
+      id: uid(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      shape: {
+        type: "rect",
+        w: 12,
+        h: 8
+      },
+      devices: [],
+      reach: REACH_DEFAULT,
+      customer: {
+        name: "",
+        city: "",
+        notes: "",
+        floors: 1,
+        cadastreUrl: ""
+      },
+      results: {
+        humidityBefore: "",
+        humidityAfter: "",
+        measureDate: "",
+        notes: ""
+      },
+      displayName: "Nový plán"
+    });
+  };
+  var handleSave = /*#__PURE__*/function () {
+    var _ref20 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(plan) {
+      var _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
+          case 0:
+            setIsSaving(true);
+            _context2.p = 1;
+            _context2.n = 2;
+            return savePlan(plan);
+          case 2:
+            setCurrentPlan(null);
+            _context2.n = 4;
+            break;
+          case 3:
+            _context2.p = 3;
+            _t2 = _context2.v;
+            alert("Chyba při ukládání: " + _t2.message);
+          case 4:
+            setIsSaving(false);
+          case 5:
+            return _context2.a(2);
+        }
+      }, _callee2, null, [[1, 3]]);
+    }));
+    return function handleSave(_x2) {
+      return _ref20.apply(this, arguments);
+    };
+  }();
+  var handleDelete = /*#__PURE__*/function () {
+    var _ref21 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(id) {
+      var _t3;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.p = _context3.n) {
+          case 0:
+            _context3.p = 0;
+            _context3.n = 1;
+            return deletePlan(id);
+          case 1:
+            _context3.n = 3;
+            break;
+          case 2:
+            _context3.p = 2;
+            _t3 = _context3.v;
+            alert("Chyba při mazání: " + _t3.message);
+          case 3:
+            return _context3.a(2);
+        }
+      }, _callee3, null, [[0, 2]]);
+    }));
+    return function handleDelete(_x3) {
+      return _ref21.apply(this, arguments);
+    };
+  }();
+  if (authLoading || !ready && user) return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: C.bg,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: F
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.textLight
+    }
+  }, "Načítám…"));
+  if (!user) return React.createElement(LoginScreen, {
+    onLogin: signIn,
+    error: authError
+  });
+  if (currentPlan) return React.createElement(PlanEditor, {
+    plan: currentPlan,
+    onSave: handleSave,
+    onBack: function onBack() {
+      return setCurrentPlan(null);
+    },
+    isSaving: isSaving
+  });
+  return React.createElement(PlansList, {
+    plans: plans,
+    onNew: handleNew,
+    onOpen: function onOpen(plan) {
+      return setCurrentPlan(_objectSpread({}, plan));
+    },
+    onDelete: handleDelete,
+    user: user,
+    onSignOut: function onSignOut() {
+      return auth.signOut();
+    }
+  });
 }
 var rootEl = document.getElementById("root");
 rootEl.style.display = "block";
