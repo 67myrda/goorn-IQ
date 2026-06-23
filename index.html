@@ -1022,12 +1022,286 @@ function ShapePanel(_ref9) {
 }
 
 // ─── PLAN EDITOR ─────────────────────────────────────────────────────────────
+// ─── LINK SECTION (propojení s goorn-zak) ─────────────────────────────────────
+function LinkSection(_ref0) {
+  var linkedOrderId = _ref0.linkedOrderId,
+    setLinkedOrderId = _ref0.setLinkedOrderId,
+    user = _ref0.user;
+  var _useState0 = useState(false),
+    _useState00 = _slicedToArray(_useState0, 2),
+    showPicker = _useState00[0],
+    setShowPicker = _useState00[1];
+  var _useState1 = useState(null),
+    _useState10 = _slicedToArray(_useState1, 2),
+    linkedInfo = _useState10[0],
+    setLinkedInfo = _useState10[1];
+  var _useState2 = useState([]),
+    _useState20 = _slicedToArray(_useState2, 2),
+    orderList = _useState20[0],
+    setOrderList = _useState20[1];
+  var _useState3 = useState(""),
+    _useState30 = _slicedToArray(_useState3, 2),
+    search = _useState30[0],
+    setSearch = _useState30[1];
+  var _useState4 = useState(false),
+    _useState40 = _slicedToArray(_useState4, 2),
+    loadingOrders = _useState40[0],
+    setLoadingOrders = _useState40[1];
+  useEffect(function () {
+    if (!linkedOrderId || !user) {
+      setLinkedInfo(null);
+      return;
+    }
+    db.collection("users").doc(user.uid).collection("orders").doc(linkedOrderId).get().then(function (doc) {
+      if (doc.exists) setLinkedInfo(doc.data());
+    }).catch(function (e) {
+      return console.error(e);
+    });
+  }, [linkedOrderId, user]);
+  useEffect(function () {
+    if (!showPicker || !user || orderList.length > 0) return;
+    setLoadingOrders(true);
+    db.collection("users").doc(user.uid).collection("orders").get().then(function (snap) {
+      setOrderList(snap.docs.map(function (d) {
+        return d.data();
+      }));
+      setLoadingOrders(false);
+    }).catch(function (e) {
+      console.error(e);
+      setLoadingOrders(false);
+    });
+  }, [showPicker, user]);
+  var filtered = orderList.filter(function (o) {
+    return !search || (o.name || "").toLowerCase().includes(search.toLowerCase()) || (o.city || "").toLowerCase().includes(search.toLowerCase());
+  }).slice(0, 30);
+  var pickOrder = function pickOrder(o) {
+    setLinkedOrderId(o.id);
+    setLinkedInfo(o);
+    setShowPicker(false);
+    setSearch("");
+  };
+  var unlink = function unlink(e) {
+    e.stopPropagation();
+    setLinkedOrderId(null);
+    setLinkedInfo(null);
+  };
+  return React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.textMid,
+      textTransform: "uppercase",
+      letterSpacing: ".5px"
+    }
+  }, "Propojení se zakázkou"), linkedOrderId ? React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "9px 12px",
+      borderRadius: 8,
+      background: C.greenPale,
+      border: "1px solid ".concat(C.green)
+    }
+  }, React.createElement("span", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.greenBright,
+      flex: 1
+    }
+  }, "\uD83D\uDD17 ", linkedInfo ? "".concat(linkedInfo.name).concat(linkedInfo.city ? " · " + linkedInfo.city : "") : "Propojeno"), React.createElement("button", {
+    onClick: function onClick() {
+      return setShowPicker(true);
+    },
+    style: {
+      fontSize: 11,
+      fontWeight: 600,
+      color: C.textMid,
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      textDecoration: "underline"
+    }
+  }, "Změnit"), React.createElement("button", {
+    onClick: unlink,
+    title: "Odpojit",
+    style: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      border: "none",
+      background: "transparent",
+      color: C.danger,
+      cursor: "pointer",
+      fontSize: 14,
+      lineHeight: 1
+    }
+  }, "\u2715")) : React.createElement("button", {
+    onClick: function onClick() {
+      return setShowPicker(true);
+    },
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      padding: "10px",
+      borderRadius: 8,
+      border: "1px dashed ".concat(C.border),
+      background: C.surfaceAlt,
+      color: C.textMid,
+      fontSize: 12.5,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, "\uD83D\uDD17 Propojit se zakázkou"), showPicker && React.createElement("div", {
+    style: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(40,35,25,.45)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      padding: 20
+    },
+    onClick: function onClick() {
+      return setShowPicker(false);
+    }
+  }, React.createElement("div", {
+    style: {
+      background: C.surface,
+      borderRadius: 12,
+      padding: 16,
+      width: "100%",
+      maxWidth: 420,
+      maxHeight: "70vh",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    },
+    onClick: function onClick(e) {
+      return e.stopPropagation();
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.text
+    }
+  }, "Vybrat zakázku"), React.createElement("input", {
+    autoFocus: true,
+    value: search,
+    onChange: function onChange(e) {
+      return setSearch(e.target.value);
+    },
+    placeholder: "Hledat jméno nebo město…",
+    style: {
+      width: "100%",
+      border: "1px solid ".concat(C.border),
+      borderRadius: 7,
+      padding: "9px 10px",
+      fontSize: 13,
+      color: C.text,
+      background: C.surfaceAlt,
+      outline: "none",
+      boxSizing: "border-box",
+      fontFamily: F
+    }
+  }), React.createElement("div", {
+    style: {
+      overflowY: "auto",
+      display: "flex",
+      flexDirection: "column",
+      gap: 4
+    }
+  }, loadingOrders ? React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.textLight,
+      padding: 10,
+      textAlign: "center"
+    }
+  }, "Načítám zakázky…") : filtered.length === 0 ? React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.textLight,
+      padding: 10,
+      textAlign: "center"
+    }
+  }, "Žádná zakázka nenalezena") : filtered.map(function (o) {
+    return React.createElement("button", {
+      key: o.id,
+      onClick: function onClick() {
+        return pickOrder(o);
+      },
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: 1,
+        padding: "8px 10px",
+        borderRadius: 7,
+        border: "1px solid ".concat(C.borderLight),
+        background: C.surfaceAlt,
+        cursor: "pointer",
+        textAlign: "left"
+      }
+    }, React.createElement("span", {
+      style: {
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: C.text
+      }
+    }, o.name || "(bez jména)"), o.city && React.createElement("span", {
+      style: {
+        fontSize: 11,
+        color: C.textLight
+      }
+    }, o.city));
+  })), React.createElement("button", {
+    onClick: function onClick() {
+      return setShowPicker(false);
+    },
+    style: {
+      padding: "9px",
+      borderRadius: 8,
+      border: "1px solid ".concat(C.border),
+      background: C.surfaceAlt,
+      color: C.textMid,
+      fontSize: 12,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, "Zavřít"))));
+}
+
 function PlanEditor(_ref10) {
   var _plan$shape, _React4, _React5, _React6;
   var plan = _ref10.plan,
     onSave = _ref10.onSave,
     onBack = _ref10.onBack,
-    isSaving = _ref10.isSaving;
+    isSaving = _ref10.isSaving,
+    user = _ref10.user;
+  var initialLinkedOrderId = plan.linkedOrderId || null;
+  var _useStateLink = useState(initialLinkedOrderId),
+    _useStateLink2 = _slicedToArray(_useStateLink, 2),
+    linkedOrderId = _useStateLink2[0],
+    setLinkedOrderId = _useStateLink2[1];
   var _useState1 = useState(plan.shape || {
       type: "rect",
       w: 12,
@@ -1125,9 +1399,10 @@ function PlanEditor(_ref10) {
       reach: reach,
       customer: customer,
       results: results,
+      linkedOrderId: linkedOrderId,
       updatedAt: new Date().toISOString(),
       displayName: customer.name || "Bez jména"
-    }));
+    }), initialLinkedOrderId);
   };
   var handlePDF = function handlePDF() {
     return exportPDF(_objectSpread(_objectSpread({}, shape), {}, {
@@ -1655,6 +1930,11 @@ function PlanEditor(_ref10) {
       }
     }, f === 1 ? "1 podlaží" : "2 podlaží (sklep + přízemí)");
   })))])),
+  tab === "info" && React.createElement(LinkSection, {
+    linkedOrderId: linkedOrderId,
+    setLinkedOrderId: setLinkedOrderId,
+    user: user
+  }),
   // VÝSLEDKY TAB
   tab === "results" && React.createElement("div", {
     style: {
@@ -2226,6 +2506,57 @@ function App() {
     ready = _usePlans.ready,
     savePlan = _usePlans.savePlan,
     deletePlan = _usePlans.deletePlan;
+  var urlHandled = useRef(false);
+  useEffect(function () {
+    if (!user || !ready || urlHandled.current) return;
+    var params = new URLSearchParams(window.location.search);
+    var planIdParam = params.get("planId");
+    var newForParam = params.get("newFor");
+    if (planIdParam) {
+      urlHandled.current = true;
+      var found = plans.find(function (p) {
+        return p.id === planIdParam;
+      });
+      if (found) {
+        setCurrentPlan(_objectSpread({}, found));
+      } else {
+        console.warn("Plán s ID " + planIdParam + " nebyl nalezen.");
+      }
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (newForParam) {
+      urlHandled.current = true;
+      var prefillName = params.get("name") || "";
+      var prefillCity = params.get("city") || "";
+      setCurrentPlan({
+        id: uid(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        shape: {
+          type: "rect",
+          w: 12,
+          h: 8
+        },
+        devices: [],
+        reach: REACH_DEFAULT,
+        customer: {
+          name: prefillName,
+          city: prefillCity,
+          notes: "",
+          floors: 1,
+          cadastreUrl: ""
+        },
+        results: {
+          humidityBefore: "",
+          humidityAfter: "",
+          measureDate: "",
+          notes: ""
+        },
+        linkedOrderId: newForParam,
+        displayName: prefillName || "Nový plán"
+      });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [user, ready, plans]);
   var signIn = /*#__PURE__*/function () {
     var _ref19 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
       var p, _t;
@@ -2282,8 +2613,8 @@ function App() {
     });
   };
   var handleSave = /*#__PURE__*/function () {
-    var _ref20 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(plan) {
-      var _t2;
+    var _ref20 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(plan, prevLinkedOrderId) {
+      var ordersCol, _t2;
       return _regenerator().w(function (_context2) {
         while (1) switch (_context2.p = _context2.n) {
           case 0:
@@ -2292,6 +2623,28 @@ function App() {
             _context2.n = 2;
             return savePlan(plan);
           case 2:
+            if (user) {
+              ordersCol = db.collection("users").doc(user.uid).collection("orders");
+              if (prevLinkedOrderId && prevLinkedOrderId !== plan.linkedOrderId) {
+                ordersCol.doc(prevLinkedOrderId).set({
+                  planId: null
+                }, {
+                  merge: true
+                }).catch(function (e) {
+                  return console.error("Odpojení staré zakázky selhalo:", e);
+                });
+              }
+              if (plan.linkedOrderId) {
+                ordersCol.doc(plan.linkedOrderId).set({
+                  planId: plan.id,
+                  deviceCount: (plan.devices || []).length
+                }, {
+                  merge: true
+                }).catch(function (e) {
+                  return console.error("Synchronizace se zakázkou selhala:", e);
+                });
+              }
+            }
             setCurrentPlan(null);
             _context2.n = 4;
             break;
@@ -2306,7 +2659,7 @@ function App() {
         }
       }, _callee2, null, [[1, 3]]);
     }));
-    return function handleSave(_x2) {
+    return function handleSave(_x2, _x3) {
       return _ref20.apply(this, arguments);
     };
   }();
@@ -2360,7 +2713,8 @@ function App() {
     onBack: function onBack() {
       return setCurrentPlan(null);
     },
-    isSaving: isSaving
+    isSaving: isSaving,
+    user: user
   });
   return React.createElement(PlansList, {
     plans: plans,
