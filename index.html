@@ -1142,7 +1142,9 @@ function _getOrCreateDriveFolder() {
             _context2.n = 3;
             break;
           }
-          throw new Error("Vyhledání složky na Disku selhalo (" + searchRes.status + ")");
+          throw Object.assign(new Error("Vyhledání složky na Disku selhalo (" + searchRes.status + ")"), {
+            status: searchRes.status
+          });
         case 3:
           _context2.n = 4;
           return searchRes.json();
@@ -1173,7 +1175,9 @@ function _getOrCreateDriveFolder() {
             _context2.n = 7;
             break;
           }
-          throw new Error("Vytvoření složky na Disku selhalo (" + createRes.status + ")");
+          throw Object.assign(new Error("Vytvoření složky na Disku selhalo (" + createRes.status + ")"), {
+            status: createRes.status
+          });
         case 7:
           _context2.n = 8;
           return createRes.json();
@@ -1226,7 +1230,9 @@ function _driveUploadFile() {
             _context3.n = 4;
             break;
           }
-          throw new Error("Nahrání na Disk selhalo (" + uploadRes.status + ")");
+          throw Object.assign(new Error("Nahrání na Disk selhalo (" + uploadRes.status + ")"), {
+            status: uploadRes.status
+          });
         case 4:
           _context3.n = 5;
           return uploadRes.json();
@@ -1288,9 +1294,12 @@ function ImageUploadSlot(props) {
       });
     } catch (err) {
       var msg = err && err.message ? err.message : "Nahrávání selhalo";
-      if (msg.indexOf("(401)") !== -1 || msg.indexOf("(403)") !== -1) {
+      var status = err && err.status;
+      if (status === 401) {
         if (onTokenInvalid) onTokenInvalid();
         setError("Přístup k Disku vypršel. Klikni znovu na \"Připojit Disk\".");
+      } else if (status === 403) {
+        setError("Disk odmítl přístup (403) — pravděpodobně není v Google Cloud projektu zapnuté Google Drive API, nebo appka nemá oprávnění k zápisu. Zkontroluj v Google Cloud Console → APIs & Services → Library → \"Google Drive API\" → Enable.");
       } else {
         setError(msg);
       }
