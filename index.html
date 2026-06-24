@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#EDEAE2}
@@ -1082,6 +1083,8 @@ var _driveFolderIdCache = null;
 var DRIVE_TOKEN_KEY = "goorniq_driveToken";
 var DRIVE_TOKEN_TS_KEY = "goorniq_driveTokenTs";
 var DRIVE_TOKEN_MAX_AGE_MS = 55 * 60 * 1000; // Google access token vydrží ~1h, 55 min je bezpečná rezerva
+var GIS_CLIENT_ID = "782644549894-bveses55mikfrj1jr1u8v4h75bn5i76g.apps.googleusercontent.com";
+var _gisTokenClient = null;
 function saveDriveToken(token) {
   try {
     if (token) {
@@ -3003,42 +3006,39 @@ function App() {
     deletePlan = _usePlans.deletePlan;
   var urlHandled = useRef(false);
   var initialEditorTabRef = useRef(null);
-  var getDriveAuth = function getDriveAuth() {
-    var driveApp;
-    try {
-      driveApp = firebase.app("driveAuth");
-    } catch (e) {
-      driveApp = firebase.initializeApp(window.__GOORN_FIREBASE_CONFIG__, "driveAuth");
-    }
-    return driveApp.auth();
-  };
   var requestDriveAccess = function requestDriveAccess() {
     setDriveError(null);
-    var p = new firebase.auth.GoogleAuthProvider();
-    p.addScope("https://www.googleapis.com/auth/drive.file");
-    p.setCustomParameters({
-      prompt: "consent select_account"
-    });
-    var driveAuth = getDriveAuth();
-    driveAuth.signInWithPopup(p).then(function (result) {
-      var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-      driveAuth.signOut()["catch"](function () {});
-      if (credential && credential.accessToken) {
-        setDriveToken(credential.accessToken);
-        saveDriveToken(credential.accessToken);
-        setDriveError(null);
-      } else {
-        setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
-      }
-    })["catch"](function (e) {
-      if (e && e.code === "auth/popup-blocked") {
-        setDriveError("Prohlížeč zablokoval popup okno. Povol vyskakovací okna pro tuto appku a zkus znovu.");
-      } else if (e && e.code === "auth/cancelled-popup-request" || e && e.code === "auth/popup-closed-by-user") {
-        setDriveError(null);
-      } else {
-        setDriveError(e && e.message ? e.message : "Přihlášení k Disku selhalo.");
-      }
-    });
+    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+      setDriveError("Přihlašovací knihovna Googlu se ještě nenahrála. Zkus to za chvíli znovu (případně obnov stránku).");
+      return;
+    }
+    if (!_gisTokenClient) {
+      _gisTokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: GIS_CLIENT_ID,
+        scope: "https://www.googleapis.com/auth/drive.file",
+        callback: function callback(tokenResponse) {
+          if (tokenResponse && tokenResponse.access_token) {
+            setDriveToken(tokenResponse.access_token);
+            saveDriveToken(tokenResponse.access_token);
+            setDriveError(null);
+          } else if (tokenResponse && tokenResponse.error) {
+            setDriveError("Disk se nepřipojil: " + tokenResponse.error);
+          } else {
+            setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
+          }
+        },
+        error_callback: function error_callback(err) {
+          if (err && err.type === "popup_closed") {
+            setDriveError(null);
+          } else if (err && err.type === "popup_failed_to_open") {
+            setDriveError("Prohlížeč zablokoval okno přihlášení. Povol vyskakovací okna pro tuto appku a zkus znovu.");
+          } else {
+            setDriveError("Přihlášení k Disku selhalo. Zkus to znovu.");
+          }
+        }
+      });
+    }
+    _gisTokenClient.requestAccessToken();
   };
   var invalidateDriveToken = function invalidateDriveToken() {
     setDriveToken(null);
