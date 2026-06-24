@@ -30,14 +30,15 @@ input,textarea,button{font-family:inherit}
 </div>
 <div id="root" style="display:none"></div>
 <script>
-firebase.initializeApp({
+window.__GOORN_FIREBASE_CONFIG__ = {
   apiKey:"AIzaSyCrmdmdmXlu2P-lOQgeYwFNO1JpIhsm7NE",
   authDomain:"goorn-prehled-zakazek.firebaseapp.com",
   projectId:"goorn-prehled-zakazek",
   storageBucket:"goorn-prehled-zakazek.firebasestorage.app",
   messagingSenderId:"782644549894",
   appId:"1:782644549894:web:b6bac82be626c887e0e687"
-});
+};
+firebase.initializeApp(window.__GOORN_FIREBASE_CONFIG__);
 </script>
 <script>
 window.onerror=function(msg,src,line,col,err){
@@ -3002,13 +3003,26 @@ function App() {
     deletePlan = _usePlans.deletePlan;
   var urlHandled = useRef(false);
   var initialEditorTabRef = useRef(null);
+  var getDriveAuth = function getDriveAuth() {
+    var driveApp;
+    try {
+      driveApp = firebase.app("driveAuth");
+    } catch (e) {
+      driveApp = firebase.initializeApp(window.__GOORN_FIREBASE_CONFIG__, "driveAuth");
+    }
+    return driveApp.auth();
+  };
   var requestDriveAccess = function requestDriveAccess() {
     setDriveError(null);
     var p = new firebase.auth.GoogleAuthProvider();
     p.addScope("https://www.googleapis.com/auth/drive.file");
-    var authPromise = auth.currentUser ? auth.currentUser.reauthenticateWithPopup(p) : auth.signInWithPopup(p);
-    authPromise.then(function (result) {
+    p.setCustomParameters({
+      prompt: "select_account"
+    });
+    var driveAuth = getDriveAuth();
+    driveAuth.signInWithPopup(p).then(function (result) {
       var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+      driveAuth.signOut()["catch"](function () {});
       if (credential && credential.accessToken) {
         setDriveToken(credential.accessToken);
         saveDriveToken(credential.accessToken);
