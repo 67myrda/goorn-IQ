@@ -1078,6 +1078,38 @@ function fileToBase64(file) {
 }
 var DRIVE_FOLDER_NAME = "GOORN IQ Planner";
 var _driveFolderIdCache = null;
+var DRIVE_TOKEN_KEY = "goorniq_driveToken";
+var DRIVE_TOKEN_TS_KEY = "goorniq_driveTokenTs";
+var DRIVE_TOKEN_MAX_AGE_MS = 55 * 60 * 1000; // Google access token vydrží ~1h, 55 min je bezpečná rezerva
+function saveDriveToken(token) {
+  try {
+    if (token) {
+      localStorage.setItem(DRIVE_TOKEN_KEY, token);
+      localStorage.setItem(DRIVE_TOKEN_TS_KEY, String(Date.now()));
+    } else {
+      localStorage.removeItem(DRIVE_TOKEN_KEY);
+      localStorage.removeItem(DRIVE_TOKEN_TS_KEY);
+    }
+  } catch (e) {
+    // localStorage nedostupný (privátní režim apod.) – token bude jen v paměti
+  }
+}
+function loadDriveToken() {
+  try {
+    var token = localStorage.getItem(DRIVE_TOKEN_KEY);
+    var ts = localStorage.getItem(DRIVE_TOKEN_TS_KEY);
+    if (!token || !ts) return null;
+    var age = Date.now() - parseInt(ts, 10);
+    if (age > DRIVE_TOKEN_MAX_AGE_MS) {
+      localStorage.removeItem(DRIVE_TOKEN_KEY);
+      localStorage.removeItem(DRIVE_TOKEN_TS_KEY);
+      return null;
+    }
+    return token;
+  } catch (e) {
+    return null;
+  }
+}
 function getOrCreateDriveFolder(_x) {
   return _getOrCreateDriveFolder.apply(this, arguments);
 }
@@ -1222,6 +1254,7 @@ function ImageUploadSlot(props) {
   var accessToken = props.accessToken;
   var driveError = props.driveError;
   var onRequestDrive = props.onRequestDrive;
+  var onTokenInvalid = props.onTokenInvalid;
   var filenamePrefix = props.filenamePrefix;
   var us1 = useState(false);
   var uploading = us1[0],
@@ -1250,7 +1283,13 @@ function ImageUploadSlot(props) {
         uploadedAt: new Date().toISOString()
       });
     } catch (err) {
-      setError(err.message || "Nahrávání selhalo");
+      var msg = err && err.message ? err.message : "Nahrávání selhalo";
+      if (msg.indexOf("(401)") !== -1 || msg.indexOf("(403)") !== -1) {
+        if (onTokenInvalid) onTokenInvalid();
+        setError("Přístup k Disku vypršel. Klikni znovu na \"Připojit Disk\".");
+      } else {
+        setError(msg);
+      }
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -1621,6 +1660,7 @@ function PlanEditor(_ref10) {
     driveToken = _ref10.driveToken,
     driveError = _ref10.driveError,
     onRequestDrive = _ref10.onRequestDrive,
+    onTokenInvalid = _ref10.onTokenInvalid,
     initialTab = _ref10.initialTab;
   var initialLinkedOrderId = plan.linkedOrderId || null;
   var _useStateLink = useState(initialLinkedOrderId),
@@ -2336,6 +2376,7 @@ function PlanEditor(_ref10) {
     accessToken: driveToken,
     driveError: driveError,
     onRequestDrive: onRequestDrive,
+    onTokenInvalid: onTokenInvalid,
     filenamePrefix: customer.name || "Pl\xE1n"
   }), React.createElement(ImageUploadSlot, {
     label: "Foto vypln\u011Bn\u00E9ho pl\xE1nu",
@@ -2344,6 +2385,7 @@ function PlanEditor(_ref10) {
     accessToken: driveToken,
     driveError: driveError,
     onRequestDrive: onRequestDrive,
+    onTokenInvalid: onTokenInvalid,
     filenamePrefix: customer.name || "Pl\xE1n"
   })),
   // VÝSLEDKY TAB
@@ -2938,7 +2980,7 @@ function App() {
     _useState40 = _slicedToArray(_useState39, 2),
     isSaving = _useState40[0],
     setIsSaving = _useState40[1];
-  var _useStateDrive1 = useState(null),
+  var _useStateDrive1 = useState(loadDriveToken),
     _useStateDrive2 = _slicedToArray(_useStateDrive1, 2),
     driveToken = _useStateDrive2[0],
     setDriveToken = _useStateDrive2[1];
@@ -2966,6 +3008,7 @@ function App() {
         var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
         if (credential && credential.accessToken) {
           setDriveToken(credential.accessToken);
+          saveDriveToken(credential.accessToken);
           setDriveError(null);
         } else {
           setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
@@ -2990,6 +3033,11 @@ function App() {
     } else {
       auth.signInWithRedirect(p);
     }
+  };
+  var invalidateDriveToken = function invalidateDriveToken() {
+    setDriveToken(null);
+    saveDriveToken(null);
+    setDriveError("Přístup k Disku vypršel. Klikni znovu na \"Připojit Disk\".");
   };
   useEffect(function () {
     if (!user || !ready || urlHandled.current) return;
@@ -3207,7 +3255,8 @@ function App() {
       user: user,
       driveToken: driveToken,
       driveError: driveError,
-      onRequestDrive: requestDriveAccess
+      onRequestDrive: requestDriveAccess,
+      onTokenInvalid: invalidateDriveToken
     });
   }
   return React.createElement(PlansList, {
@@ -3219,6 +3268,7 @@ function App() {
     onDelete: handleDelete,
     user: user,
     onSignOut: function onSignOut() {
+      saveDriveToken(null);
       return auth.signOut();
     }
   });
