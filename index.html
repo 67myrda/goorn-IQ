@@ -3002,37 +3002,29 @@ function App() {
     deletePlan = _usePlans.deletePlan;
   var urlHandled = useRef(false);
   var initialEditorTabRef = useRef(null);
-  useEffect(function () {
-    auth.getRedirectResult().then(function (result) {
-      if (result && result.user) {
-        var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-        if (credential && credential.accessToken) {
-          setDriveToken(credential.accessToken);
-          saveDriveToken(credential.accessToken);
-          setDriveError(null);
-        } else {
-          setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
-        }
-      }
-    })["catch"](function (e) {
-      setDriveError(e && e.message ? e.message : "Přihlášení k Disku selhalo.");
-    });
-  }, []);
   var requestDriveAccess = function requestDriveAccess() {
     setDriveError(null);
-    if (currentPlan && currentPlan.id) {
-      var params = new URLSearchParams();
-      params.set("planId", currentPlan.id);
-      params.set("tab", "info");
-      window.history.replaceState({}, "", window.location.pathname + "?" + params.toString());
-    }
     var p = new firebase.auth.GoogleAuthProvider();
     p.addScope("https://www.googleapis.com/auth/drive.file");
-    if (auth.currentUser) {
-      auth.currentUser.reauthenticateWithRedirect(p);
-    } else {
-      auth.signInWithRedirect(p);
-    }
+    var authPromise = auth.currentUser ? auth.currentUser.reauthenticateWithPopup(p) : auth.signInWithPopup(p);
+    authPromise.then(function (result) {
+      var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+      if (credential && credential.accessToken) {
+        setDriveToken(credential.accessToken);
+        saveDriveToken(credential.accessToken);
+        setDriveError(null);
+      } else {
+        setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
+      }
+    })["catch"](function (e) {
+      if (e && e.code === "auth/popup-blocked") {
+        setDriveError("Prohlížeč zablokoval popup okno. Povol vyskakovací okna pro tuto appku a zkus znovu.");
+      } else if (e && e.code === "auth/cancelled-popup-request" || e && e.code === "auth/popup-closed-by-user") {
+        setDriveError(null);
+      } else {
+        setDriveError(e && e.message ? e.message : "Přihlášení k Disku selhalo.");
+      }
+    });
   };
   var invalidateDriveToken = function invalidateDriveToken() {
     setDriveToken(null);
