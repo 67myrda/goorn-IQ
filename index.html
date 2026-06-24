@@ -3017,7 +3017,7 @@ function App() {
     var p = new firebase.auth.GoogleAuthProvider();
     p.addScope("https://www.googleapis.com/auth/drive.file");
     p.setCustomParameters({
-      prompt: "select_account"
+      prompt: "consent select_account"
     });
     var driveAuth = getDriveAuth();
     driveAuth.signInWithPopup(p).then(function (result) {
