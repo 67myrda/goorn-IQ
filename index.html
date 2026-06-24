@@ -513,7 +513,14 @@ function exportPDF(shape, devices, reach, customer, results) {
     tctx.fillStyle = "#685E52";
     tctx.font = "15px Arial";
     var ty = 76;
-    if (customer.name) tctx.fillText("Z\xE1kazn\xEDk: ".concat(customer.name).concat(customer.city ? " · " + customer.city : ""), 16, ty), ty += 22;
+    if (customer.name) {
+      tctx.fillStyle = "#3A7D3E";
+      tctx.font = "bold 16px Arial";
+      tctx.fillText("Z\xE1kazn\xEDk: ".concat(customer.name).concat(customer.city ? " · " + customer.city : ""), 16, ty);
+      ty += 24;
+      tctx.fillStyle = "#685E52";
+      tctx.font = "15px Arial";
+    }
     tctx.fillText("Plocha: ~".concat(cells.length, " m\xB2  \xB7  Podlaž\xED: ").concat(customer.floors, "  \xB7  Př\xEDstroje: ").concat(devices.length), 16, ty);
     ty += 22;
     tctx.fillText("Pokryt\xED: ".concat(calcCoverage(cells, devices, reach), " % plochy  \xB7  Dosah př\xEDstroje: ").concat(reach, " m"), 16, ty);
@@ -532,7 +539,7 @@ function exportPDF(shape, devices, reach, customer, results) {
       ty += 8;
       tctx.fillStyle = "#7A6249";
       tctx.font = "bold 14px Arial";
-      tctx.fillText("Výsledky odvlhčování:", 16, ty);
+      tctx.fillText("Výsledky měření:", 16, ty);
       ty += 20;
       if (results.humidityBefore) {
         tctx.fillStyle = "#3A7D3E";
@@ -1052,6 +1059,317 @@ function ShapePanel(_ref9) {
 
 // ─── PLAN EDITOR ─────────────────────────────────────────────────────────────
 // ─── LINK SECTION (propojení s goorn-zak) ─────────────────────────────────────
+// ─── DRIVE UPLOAD ──────────────────────────────────────────────────────────
+function fileToBase64(file) {
+  return new Promise(function (resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      resolve(reader.result.split(",")[1]);
+    };
+    reader.onerror = function () {
+      reject(reader.error);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+var DRIVE_FOLDER_NAME = "GOORN IQ Planner";
+var _driveFolderIdCache = null;
+function getOrCreateDriveFolder(_x) {
+  return _getOrCreateDriveFolder.apply(this, arguments);
+}
+function _getOrCreateDriveFolder() {
+  _getOrCreateDriveFolder = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(accessToken) {
+    var q, searchRes, searchData, createRes, createData;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          if (!_driveFolderIdCache) {
+            _context2.n = 1;
+            break;
+          }
+          return _context2.a(2, _driveFolderIdCache);
+        case 1:
+          q = encodeURIComponent("mimeType='application/vnd.google-apps.folder' and name='" + DRIVE_FOLDER_NAME + "' and trashed=false");
+          _context2.n = 2;
+          return fetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name)", {
+            headers: {
+              Authorization: "Bearer " + accessToken
+            }
+          });
+        case 2:
+          searchRes = _context2.v;
+          if (searchRes.ok) {
+            _context2.n = 3;
+            break;
+          }
+          throw new Error("Vyhledání složky na Disku selhalo (" + searchRes.status + ")");
+        case 3:
+          _context2.n = 4;
+          return searchRes.json();
+        case 4:
+          searchData = _context2.v;
+          if (!(searchData.files && searchData.files.length > 0)) {
+            _context2.n = 5;
+            break;
+          }
+          _driveFolderIdCache = searchData.files[0].id;
+          return _context2.a(2, _driveFolderIdCache);
+        case 5:
+          _context2.n = 6;
+          return fetch("https://www.googleapis.com/drive/v3/files", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + accessToken,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              name: DRIVE_FOLDER_NAME,
+              mimeType: "application/vnd.google-apps.folder"
+            })
+          });
+        case 6:
+          createRes = _context2.v;
+          if (createRes.ok) {
+            _context2.n = 7;
+            break;
+          }
+          throw new Error("Vytvoření složky na Disku selhalo (" + createRes.status + ")");
+        case 7:
+          _context2.n = 8;
+          return createRes.json();
+        case 8:
+          createData = _context2.v;
+          _driveFolderIdCache = createData.id;
+          return _context2.a(2, _driveFolderIdCache);
+      }
+    }, _callee2);
+  }));
+  return _getOrCreateDriveFolder.apply(this, arguments);
+}
+function driveUploadFile(_x2, _x3, _x4) {
+  return _driveUploadFile.apply(this, arguments);
+}
+function _driveUploadFile() {
+  _driveUploadFile = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(file, accessToken, filename) {
+    var folderId, metadata, boundary, delimiter, closeDelim, base64Data, multipartBody, uploadRes, uploadData, fileId;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.n) {
+        case 0:
+          _context3.n = 1;
+          return getOrCreateDriveFolder(accessToken);
+        case 1:
+          folderId = _context3.v;
+          metadata = {
+            name: filename,
+            parents: [folderId]
+          };
+          boundary = "-------goorn" + Date.now();
+          delimiter = "\r\n--" + boundary + "\r\n";
+          closeDelim = "\r\n--" + boundary + "--";
+          _context3.n = 2;
+          return fileToBase64(file);
+        case 2:
+          base64Data = _context3.v;
+          multipartBody = delimiter + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + JSON.stringify(metadata) + delimiter + "Content-Type: " + (file.type || "application/octet-stream") + "\r\n" + "Content-Transfer-Encoding: base64\r\n\r\n" + base64Data + closeDelim;
+          _context3.n = 3;
+          return fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + accessToken,
+              "Content-Type": 'multipart/related; boundary="' + boundary + '"'
+            },
+            body: multipartBody
+          });
+        case 3:
+          uploadRes = _context3.v;
+          if (uploadRes.ok) {
+            _context3.n = 4;
+            break;
+          }
+          throw new Error("Nahrání na Disk selhalo (" + uploadRes.status + ")");
+        case 4:
+          _context3.n = 5;
+          return uploadRes.json();
+        case 5:
+          uploadData = _context3.v;
+          fileId = uploadData.id;
+          return _context3.a(2, {
+            id: fileId,
+            link: "https://drive.google.com/file/d/" + fileId + "/view"
+          });
+      }
+    }, _callee3);
+  }));
+  return _driveUploadFile.apply(this, arguments);
+}
+function ImageUploadSlot(props) {
+  var lbl = {
+    fontSize: 9,
+    color: C.textLight,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: ".5px",
+    marginBottom: 4,
+    display: "block"
+  };
+  var label = props.label;
+  var value = props.value;
+  var onUploaded = props.onUploaded;
+  var accessToken = props.accessToken;
+  var driveError = props.driveError;
+  var onRequestDrive = props.onRequestDrive;
+  var filenamePrefix = props.filenamePrefix;
+  var us1 = useState(false);
+  var uploading = us1[0],
+    setUploading = us1[1];
+  var us2 = useState(null);
+  var error = us2[0],
+    setError = us2[1];
+  var inputRef = useRef(null);
+  var handleFile = /*#__PURE__*/function () {
+    var _handleFile = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(e) {
+      var file, ext, filename, result, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            file = e.target.files && e.target.files[0];
+            if (file) {
+              _context.n = 1;
+              break;
+            }
+            return _context.a(2);
+          case 1:
+            if (accessToken) {
+              _context.n = 2;
+              break;
+            }
+            setError("Nejsi přihlášen k Disku. Klikni na \"Připojit Disk\" výše.");
+            if (inputRef.current) inputRef.current.value = "";
+            return _context.a(2);
+          case 2:
+            setUploading(true);
+            setError(null);
+            _context.p = 3;
+            ext = file.name.split(".").pop() || "jpg";
+            filename = filenamePrefix + " - " + label + "." + ext;
+            _context.n = 4;
+            return driveUploadFile(file, accessToken, filename);
+          case 4:
+            result = _context.v;
+            onUploaded({
+              id: result.id,
+              link: result.link,
+              uploadedAt: new Date().toISOString()
+            });
+            _context.n = 6;
+            break;
+          case 5:
+            _context.p = 5;
+            _t = _context.v;
+            setError(_t.message || "Nahrávání selhalo");
+          case 6:
+            _context.p = 6;
+            setUploading(false);
+            if (inputRef.current) inputRef.current.value = "";
+            return _context.f(6);
+          case 7:
+            return _context.a(2);
+        }
+      }, _callee, null, [[3, 5, 6, 7]]);
+    }));
+    function handleFile(_x5) {
+      return _handleFile.apply(this, arguments);
+    }
+    return handleFile;
+  }();
+  return React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, React.createElement("span", {
+    style: lbl
+  }, label), value ? React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 10px",
+      borderRadius: 7,
+      background: C.greenPale,
+      border: "1px solid " + C.green
+    }
+  }, React.createElement("a", {
+    href: value.link,
+    target: "_blank",
+    rel: "noopener",
+    style: {
+      fontSize: 12.5,
+      fontWeight: 600,
+      color: C.greenBright,
+      flex: 1,
+      textDecoration: "underline"
+    }
+  }, "\uD83D\uDCC4 Otevřít na Disku"), React.createElement("label", {
+    style: {
+      fontSize: 11,
+      color: C.textMid,
+      cursor: "pointer",
+      textDecoration: "underline"
+    }
+  }, "Nahradit", React.createElement("input", {
+    ref: inputRef,
+    type: "file",
+    accept: "image/*",
+    onChange: handleFile,
+    style: {
+      display: "none"
+    }
+  }))) : React.createElement("label", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      padding: "10px",
+      borderRadius: 7,
+      border: "1px dashed " + C.border,
+      background: C.surfaceAlt,
+      color: C.textMid,
+      fontSize: 12.5,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, uploading ? "Nahrávám…" : "\uD83D\uDCC1 Vybrat soubor", React.createElement("input", {
+    ref: inputRef,
+    type: "file",
+    accept: "image/*",
+    onChange: handleFile,
+    style: {
+      display: "none"
+    },
+    disabled: uploading
+  })), error && React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.danger
+    }
+  }, error), !accessToken && driveError && React.createElement("button", {
+    onClick: onRequestDrive,
+    style: {
+      fontSize: 11,
+      color: C.brown,
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      textDecoration: "underline",
+      textAlign: "left",
+      padding: 0
+    }
+  }, "\uD83D\uDD17 Připojit Disk"));
+}
+
 function LinkSection(_ref0) {
   var linkedOrderId = _ref0.linkedOrderId,
     setLinkedOrderId = _ref0.setLinkedOrderId,
@@ -1325,12 +1643,23 @@ function PlanEditor(_ref10) {
     onSave = _ref10.onSave,
     onBack = _ref10.onBack,
     isSaving = _ref10.isSaving,
-    user = _ref10.user;
+    user = _ref10.user,
+    driveToken = _ref10.driveToken,
+    driveError = _ref10.driveError,
+    onRequestDrive = _ref10.onRequestDrive;
   var initialLinkedOrderId = plan.linkedOrderId || null;
   var _useStateLink = useState(initialLinkedOrderId),
     _useStateLink2 = _slicedToArray(_useStateLink, 2),
     linkedOrderId = _useStateLink2[0],
     setLinkedOrderId = _useStateLink2[1];
+  var _useStateCat = useState(plan.catastreImage || null),
+    _useStateCat2 = _slicedToArray(_useStateCat, 2),
+    catastreImage = _useStateCat2[0],
+    setCatastreImage = _useStateCat2[1];
+  var _useStatePhoto = useState(plan.filledPlanPhoto || null),
+    _useStatePhoto2 = _slicedToArray(_useStatePhoto, 2),
+    filledPlanPhoto = _useStatePhoto2[0],
+    setFilledPlanPhoto = _useStatePhoto2[1];
   var _useState1 = useState(plan.shape || {
       type: "rect",
       w: 12,
@@ -1429,6 +1758,8 @@ function PlanEditor(_ref10) {
       customer: customer,
       results: results,
       linkedOrderId: linkedOrderId,
+      catastreImage: catastreImage,
+      filledPlanPhoto: filledPlanPhoto,
       updatedAt: new Date().toISOString(),
       displayName: customer.name || "Bez jména"
     }), initialLinkedOrderId);
@@ -1972,6 +2303,68 @@ function PlanEditor(_ref10) {
     setLinkedOrderId: setLinkedOrderId,
     user: user
   }),
+  tab === "info" && React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: 16,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.textMid,
+      textTransform: "uppercase",
+      letterSpacing: ".5px"
+    }
+  }, "Fotodokumentace"),
+  !driveToken && React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "8px 10px",
+      borderRadius: 7,
+      background: C.brownPale,
+      fontSize: 11.5,
+      color: C.textMid
+    }
+  }, "Pro nahr\xE1v\xE1n\xED soubor\u016F se p\u0159ipoj k Disku.", React.createElement("button", {
+    onClick: onRequestDrive,
+    style: {
+      marginLeft: "auto",
+      padding: "5px 10px",
+      borderRadius: 6,
+      border: "none",
+      background: C.green,
+      color: "#fff",
+      fontSize: 11,
+      fontWeight: 600,
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, "P\u0159ipojit Disk")),
+  React.createElement(ImageUploadSlot, {
+    label: "Screenshot z katastru",
+    value: catastreImage,
+    onUploaded: setCatastreImage,
+    accessToken: driveToken,
+    driveError: driveError,
+    onRequestDrive: onRequestDrive,
+    filenamePrefix: customer.name || "Pl\xE1n"
+  }), React.createElement(ImageUploadSlot, {
+    label: "Foto vypln\u011Bn\u00E9ho pl\xE1nu",
+    value: filledPlanPhoto,
+    onUploaded: setFilledPlanPhoto,
+    accessToken: driveToken,
+    driveError: driveError,
+    onRequestDrive: onRequestDrive,
+    filenamePrefix: customer.name || "Pl\xE1n"
+  })),
   // VÝSLEDKY TAB
   tab === "results" && React.createElement("div", {
     style: {
@@ -1997,7 +2390,7 @@ function PlanEditor(_ref10) {
       textTransform: "uppercase",
       letterSpacing: ".5px"
     }
-  }, "Výsledky odvlhčování"), React.createElement("div", {
+  }, "Výsledky měření"), React.createElement("div", {
     style: {
       fontSize: 11,
       color: C.textLight,
@@ -2553,6 +2946,15 @@ function App() {
     _useState40 = _slicedToArray(_useState39, 2),
     isSaving = _useState40[0],
     setIsSaving = _useState40[1];
+  var _useStateDrive1 = useState(null),
+    _useStateDrive2 = _slicedToArray(_useStateDrive1, 2),
+    driveToken = _useStateDrive2[0],
+    setDriveToken = _useStateDrive2[1];
+  var _useStateDrive3 = useState(null),
+    _useStateDrive4 = _slicedToArray(_useStateDrive3, 2),
+    driveError = _useStateDrive4[0],
+    setDriveError = _useStateDrive4[1];
+  var driveRequested = useRef(false);
   useEffect(function () {
     var unsub = auth.onAuthStateChanged(function (u) {
       setUser(u);
@@ -2566,6 +2968,46 @@ function App() {
     savePlan = _usePlans.savePlan,
     deletePlan = _usePlans.deletePlan;
   var urlHandled = useRef(false);
+  var requestDriveAccess = /*#__PURE__*/function () {
+    var _requestDriveAccess = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var p, result, credential, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            _context.p = 0;
+            p = new firebase.auth.GoogleAuthProvider();
+            p.addScope("https://www.googleapis.com/auth/drive.file");
+            _context.n = 1;
+            return auth.signInWithPopup(p);
+          case 1:
+            result = _context.v;
+            credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+            if (credential && credential.accessToken) {
+              setDriveToken(credential.accessToken);
+              setDriveError(null);
+            }
+            _context.n = 3;
+            break;
+          case 2:
+            _context.p = 2;
+            _t = _context.v;
+            setDriveError(_t.message);
+          case 3:
+            return _context.a(2);
+        }
+      }, _callee, null, [[0, 2]]);
+    }));
+    function requestDriveAccess() {
+      return _requestDriveAccess.apply(this, arguments);
+    }
+    return requestDriveAccess;
+  }();
+  useEffect(function () {
+    if (user && !driveRequested.current) {
+      driveRequested.current = true;
+      requestDriveAccess();
+    }
+  }, [user]);
   useEffect(function () {
     if (!user || !ready || urlHandled.current) return;
     var params = new URLSearchParams(window.location.search);
@@ -2773,7 +3215,10 @@ function App() {
       return setCurrentPlan(null);
     },
     isSaving: isSaving,
-    user: user
+    user: user,
+    driveToken: driveToken,
+    driveError: driveError,
+    onRequestDrive: requestDriveAccess
   });
   return React.createElement(PlansList, {
     plans: plans,
