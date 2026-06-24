@@ -503,7 +503,7 @@ function exportPDF(shape, devices, reach, customer, results) {
     var tc = document.createElement("canvas");
     tc.width = 800;
     var hasResults = results && (results.humidityBefore || results.humidityAfter || results.notes);
-    tc.height = hasResults ? 300 : 220;
+    tc.height = hasResults ? 330 : 270;
     var tctx = tc.getContext("2d");
     tctx.fillStyle = "#FFFFFF";
     tctx.fillRect(0, 0, tc.width, tc.height);
@@ -535,18 +535,16 @@ function exportPDF(shape, devices, reach, customer, results) {
       ty += 4;
       ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(customer.notes), 16, ty, tc.width - 32, 18);
     }
+    ty += 8;
+    tctx.fillStyle = "#7A6249";
+    tctx.font = "bold 14px Arial";
+    tctx.fillText("Výsledky měření:", 16, ty);
+    ty += 20;
+    tctx.fillStyle = "#3A7D3E";
+    tctx.font = "bold 16px Arial";
+    tctx.fillText("Sklep: max.......% Ø.......% | Podlaž\xED: max.......% Ø.......%", 16, ty);
+    ty += 22;
     if (hasResults) {
-      ty += 8;
-      tctx.fillStyle = "#7A6249";
-      tctx.font = "bold 14px Arial";
-      tctx.fillText("Výsledky měření:", 16, ty);
-      ty += 20;
-      if (results.humidityTemplate) {
-        tctx.fillStyle = "#3A7D3E";
-        tctx.font = "bold 16px Arial";
-        tctx.fillText(results.humidityTemplate, 16, ty);
-        ty += 22;
-      }
       if (results.humidityBefore) {
         tctx.fillStyle = "#3A7D3E";
         tctx.font = "bold 16px Arial";
@@ -1232,63 +1230,32 @@ function ImageUploadSlot(props) {
   var error = us2[0],
     setError = us2[1];
   var inputRef = useRef(null);
-  var handleFile = /*#__PURE__*/function () {
-    var _handleFile = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(e) {
-      var file, ext, filename, result, _t;
-      return _regenerator().w(function (_context) {
-        while (1) switch (_context.p = _context.n) {
-          case 0:
-            file = e.target.files && e.target.files[0];
-            if (file) {
-              _context.n = 1;
-              break;
-            }
-            return _context.a(2);
-          case 1:
-            if (accessToken) {
-              _context.n = 2;
-              break;
-            }
-            onRequestDrive();
-            setError("Chvíli připojuji Disk... Prosím čekej.");
-            if (inputRef.current) inputRef.current.value = "";
-            return _context.a(2);
-          case 2:
-            setUploading(true);
-            setError(null);
-            _context.p = 3;
-            ext = file.name.split(".").pop() || "jpg";
-            filename = filenamePrefix + " - " + label + "." + ext;
-            _context.n = 4;
-            return driveUploadFile(file, accessToken, filename);
-          case 4:
-            result = _context.v;
-            onUploaded({
-              id: result.id,
-              link: result.link,
-              uploadedAt: new Date().toISOString()
-            });
-            _context.n = 6;
-            break;
-          case 5:
-            _context.p = 5;
-            _t = _context.v;
-            setError(_t.message || "Nahrávání selhalo");
-          case 6:
-            _context.p = 6;
-            setUploading(false);
-            if (inputRef.current) inputRef.current.value = "";
-            return _context.f(6);
-          case 7:
-            return _context.a(2);
-        }
-      }, _callee, null, [[3, 5, 6, 7]]);
-    }));
-    function handleFile(_x5) {
-      return _handleFile.apply(this, arguments);
+  var handleFile = async function handleFile(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!accessToken) {
+      setError("Nejsi přihlášen k Disku. Klikni na \"Připojit Disk\" výše.");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
     }
-    return handleFile;
-  }();
+    try {
+      setUploading(true);
+      setError(null);
+      var ext = file.name.split(".").pop() || "jpg";
+      var filename = filenamePrefix + " - " + label + "." + ext;
+      var result = await driveUploadFile(file, accessToken, filename);
+      onUploaded({
+        id: result.id,
+        link: result.link,
+        uploadedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      setError(err.message || "Nahrávání selhalo");
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  };
   return React.createElement("div", {
     style: {
       display: "flex",
@@ -2354,7 +2321,13 @@ function PlanEditor(_ref10) {
       cursor: "pointer",
       flexShrink: 0
     }
-  }, "P\u0159ipojit Disk")),
+  }, "P\u0159ipojit Disk")), !driveToken && driveError && React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.danger,
+      padding: "0 2px"
+    }
+  }, "\u26A0\uFE0F ".concat(driveError)),
   React.createElement(ImageUploadSlot, {
     label: "Screenshot z katastru",
     value: catastreImage,
@@ -2406,7 +2379,18 @@ function PlanEditor(_ref10) {
       borderRadius: 6,
       padding: "8px 10px"
     }
-  }, "Vyplňte po kontrolní návštěvě (4–12 měsíců po instalaci). Výsledky se zobrazí v PDF jako argument pro zákazníka.")].concat(_toConsumableArray([["humidityBefore", "Vlhkost PŘED instalací", "např. 28 % sklep, 18 % přízemí"], ["humidityAfter", "Vlhkost PO instalaci", "např. 12 % sklep, 9 % přízemí"], ["humidityTemplate", "Vlhkost sklep/podlaží (pro PDF)", "Sklep: max.......% Ø.......% | Podlaží: max.......% Ø.......%"], ["measureDate", "Datum měření výsledků", "18. 5. 2027"], ["notes", "Poznámka k výsledkům", "Zákazník spokojen, viditelné zlepšení..."]].map(function (_ref14) {
+  }, "Vyplňte po kontrolní návštěvě (4–12 měsíců po instalaci). Výsledky se zobrazí v PDF jako argument pro zákazníka.")].concat([React.createElement("div", {
+    key: "tmplInfo",
+    style: {
+      fontSize: 11,
+      color: "#3A7D3E",
+      fontWeight: 700,
+      lineHeight: 1.6,
+      background: C.greenPale,
+      borderRadius: 6,
+      padding: "8px 10px"
+    }
+  }, "✅ V PDF se vždy automaticky vytiskne řádek \"Sklep: max.......% Ø.......% | Podlaž\xED: max.......%\" pro ručn\xED dopsán\xED hodnot na vytištěný papír.")]).concat(_toConsumableArray([["humidityBefore", "Vlhkost PŘED instalací", "např. 28 % sklep, 18 % přízemí"], ["humidityAfter", "Vlhkost PO instalaci", "např. 12 % sklep, 9 % přízemí"], ["measureDate", "Datum měření výsledků", "18. 5. 2027"], ["notes", "Poznámka k výsledkům", "Zákazník spokojen, viditelné zlepšení..."]].map(function (_ref14) {
     var _ref15 = _slicedToArray(_ref14, 3),
       k = _ref15[0],
       label = _ref15[1],
@@ -2974,40 +2958,23 @@ function App() {
     savePlan = _usePlans.savePlan,
     deletePlan = _usePlans.deletePlan;
   var urlHandled = useRef(false);
-  var requestDriveAccess = /*#__PURE__*/function () {
-    var _requestDriveAccess = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-      var p, result, credential, _t;
-      return _regenerator().w(function (_context) {
-        while (1) switch (_context.p = _context.n) {
-          case 0:
-            _context.p = 0;
-            p = new firebase.auth.GoogleAuthProvider();
-            p.addScope("https://www.googleapis.com/auth/drive.file");
-            _context.n = 1;
-            return auth.signInWithPopup(p);
-          case 1:
-            result = _context.v;
-            credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-            if (credential && credential.accessToken) {
-              setDriveToken(credential.accessToken);
-              setDriveError(null);
-            }
-            _context.n = 3;
-            break;
-          case 2:
-            _context.p = 2;
-            _t = _context.v;
-            setDriveError(_t.message);
-          case 3:
-            return _context.a(2);
-        }
-      }, _callee, null, [[0, 2]]);
-    }));
-    function requestDriveAccess() {
-      return _requestDriveAccess.apply(this, arguments);
+  var requestDriveAccess = async function requestDriveAccess() {
+    setDriveError(null);
+    try {
+      var p = new firebase.auth.GoogleAuthProvider();
+      p.addScope("https://www.googleapis.com/auth/drive.file");
+      var result = auth.currentUser ? await auth.currentUser.reauthenticateWithPopup(p) : await auth.signInWithPopup(p);
+      var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+      if (credential && credential.accessToken) {
+        setDriveToken(credential.accessToken);
+        setDriveError(null);
+      } else {
+        setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
+      }
+    } catch (e) {
+      setDriveError(e && e.message ? e.message : "Přihlášení k Disku selhalo.");
     }
-    return requestDriveAccess;
-  }();
+  };
   useEffect(function () {
     if (!user || !ready || urlHandled.current) return;
     var params = new URLSearchParams(window.location.search);
