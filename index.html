@@ -1620,7 +1620,8 @@ function PlanEditor(_ref10) {
     user = _ref10.user,
     driveToken = _ref10.driveToken,
     driveError = _ref10.driveError,
-    onRequestDrive = _ref10.onRequestDrive;
+    onRequestDrive = _ref10.onRequestDrive,
+    initialTab = _ref10.initialTab;
   var initialLinkedOrderId = plan.linkedOrderId || null;
   var _useStateLink = useState(initialLinkedOrderId),
     _useStateLink2 = _slicedToArray(_useStateLink, 2),
@@ -1666,7 +1667,7 @@ function PlanEditor(_ref10) {
     _useState22 = _slicedToArray(_useState21, 2),
     drawnCells = _useState22[0],
     setDrawnCells = _useState22[1];
-  var _useState23 = useState("plan"),
+  var _useState23 = useState(initialTab || "plan"),
     _useState24 = _slicedToArray(_useState23, 2),
     tab = _useState24[0],
     setTab = _useState24[1];
@@ -2958,21 +2959,36 @@ function App() {
     savePlan = _usePlans.savePlan,
     deletePlan = _usePlans.deletePlan;
   var urlHandled = useRef(false);
-  var requestDriveAccess = async function requestDriveAccess() {
-    setDriveError(null);
-    try {
-      var p = new firebase.auth.GoogleAuthProvider();
-      p.addScope("https://www.googleapis.com/auth/drive.file");
-      var result = auth.currentUser ? await auth.currentUser.reauthenticateWithPopup(p) : await auth.signInWithPopup(p);
-      var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-      if (credential && credential.accessToken) {
-        setDriveToken(credential.accessToken);
-        setDriveError(null);
-      } else {
-        setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
+  var initialEditorTabRef = useRef(null);
+  useEffect(function () {
+    auth.getRedirectResult().then(function (result) {
+      if (result && result.user) {
+        var credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+        if (credential && credential.accessToken) {
+          setDriveToken(credential.accessToken);
+          setDriveError(null);
+        } else {
+          setDriveError("Disk se nepřipojil (chybí přístupový token). Zkus to znovu.");
+        }
       }
-    } catch (e) {
+    })["catch"](function (e) {
       setDriveError(e && e.message ? e.message : "Přihlášení k Disku selhalo.");
+    });
+  }, []);
+  var requestDriveAccess = function requestDriveAccess() {
+    setDriveError(null);
+    if (currentPlan && currentPlan.id) {
+      var params = new URLSearchParams();
+      params.set("planId", currentPlan.id);
+      params.set("tab", "info");
+      window.history.replaceState({}, "", window.location.pathname + "?" + params.toString());
+    }
+    var p = new firebase.auth.GoogleAuthProvider();
+    p.addScope("https://www.googleapis.com/auth/drive.file");
+    if (auth.currentUser) {
+      auth.currentUser.reauthenticateWithRedirect(p);
+    } else {
+      auth.signInWithRedirect(p);
     }
   };
   useEffect(function () {
@@ -2980,6 +2996,7 @@ function App() {
     var params = new URLSearchParams(window.location.search);
     var planIdParam = params.get("planId");
     var newForParam = params.get("newFor");
+    var tabParam = params.get("tab");
     if (planIdParam) {
       urlHandled.current = true;
       var found = plans.find(function (p) {
@@ -2987,6 +3004,7 @@ function App() {
       });
       if (found) {
         setCurrentPlan(_objectSpread({}, found));
+        if (tabParam) initialEditorTabRef.current = tabParam;
       } else {
         console.warn("Plán s ID " + planIdParam + " nebyl nalezen.");
       }
@@ -3175,18 +3193,23 @@ function App() {
     onLogin: signIn,
     error: authError
   });
-  if (currentPlan) return React.createElement(PlanEditor, {
-    plan: currentPlan,
-    onSave: handleSave,
-    onBack: function onBack() {
-      return setCurrentPlan(null);
-    },
-    isSaving: isSaving,
-    user: user,
-    driveToken: driveToken,
-    driveError: driveError,
-    onRequestDrive: requestDriveAccess
-  });
+  if (currentPlan) {
+    var _initTab = initialEditorTabRef.current;
+    initialEditorTabRef.current = null;
+    return React.createElement(PlanEditor, {
+      plan: currentPlan,
+      initialTab: _initTab,
+      onSave: handleSave,
+      onBack: function onBack() {
+        return setCurrentPlan(null);
+      },
+      isSaving: isSaving,
+      user: user,
+      driveToken: driveToken,
+      driveError: driveError,
+      onRequestDrive: requestDriveAccess
+    });
+  }
   return React.createElement(PlansList, {
     plans: plans,
     onNew: handleNew,
