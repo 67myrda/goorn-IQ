@@ -542,10 +542,10 @@ function exportPDF(shape, devices, reach, customer, results) {
       tctx.fillText("Výsledky měření:", 16, ty);
       ty += 20;
       if (results.humidityTemplate) {
-        tctx.fillStyle = "#8B7355";
-        tctx.font = "13px Arial";
+        tctx.fillStyle = "#3A7D3E";
+        tctx.font = "bold 16px Arial";
         tctx.fillText(results.humidityTemplate, 16, ty);
-        ty += 18;
+        ty += 22;
       }
       if (results.humidityBefore) {
         tctx.fillStyle = "#3A7D3E";
@@ -1249,7 +1249,8 @@ function ImageUploadSlot(props) {
               _context.n = 2;
               break;
             }
-            setError("Nejsi přihlášen k Disku. Klikni na \"Připojit Disk\" výše.");
+            onRequestDrive();
+            setError("Chvíli připojuji Disk... Prosím čekej.");
             if (inputRef.current) inputRef.current.value = "";
             return _context.a(2);
           case 2:
