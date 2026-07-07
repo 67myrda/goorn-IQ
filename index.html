@@ -1111,8 +1111,8 @@ function fileToBase64(file) {
 }
 var DRIVE_FOLDER_NAME = "GOORN IQ Planner";
 var _driveFolderIdCache = null;
-var DRIVE_TOKEN_KEY = "goorniq_driveToken";
-var DRIVE_TOKEN_TS_KEY = "goorniq_driveTokenTs";
+var DRIVE_TOKEN_KEY = "goorniq_driveToken_v2";
+var DRIVE_TOKEN_TS_KEY = "goorniq_driveTokenTs_v2";
 var DRIVE_TOKEN_MAX_AGE_MS = 55 * 60 * 1000; // Google access token vydrží ~1h, 55 min je bezpečná rezerva
 var GIS_CLIENT_ID = "782644549894-bveses55mikfrj1jr1u8v4h75bn5i76g.apps.googleusercontent.com";
 var _gisTokenClient = null;
@@ -3307,7 +3307,7 @@ function App() {
     if (!_gisTokenClient) {
       _gisTokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: GIS_CLIENT_ID,
-        scope: "https://www.googleapis.com/auth/drive.file",
+        scope: "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly",
         callback: function callback(tokenResponse) {
           if (tokenResponse && tokenResponse.access_token) {
             setDriveToken(tokenResponse.access_token);
