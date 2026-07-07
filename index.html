@@ -1418,7 +1418,8 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     });
     var pageW = 297,
       pageH = 210,
-      m = 10;
+      m = 8,
+      gap = 4;
     var colW = (pageW - 3 * m) / 2;
     // Levá polovina — leták, poměr stran zachován
     var letakAspect = letakCanvas.width / letakCanvas.height;
@@ -1431,19 +1432,23 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     var letakX = m + (colW - letakW) / 2;
     var letakY = m + (pageH - 2 * m - letakH) / 2;
     doc.addImage(letakCanvas.toDataURL("image/png"), "PNG", letakX, letakY, letakW, letakH);
-    // Pravá polovina — info text nahoře, plán pod tím, patička dole (pokud se vejde)
+    // Pravá polovina — info text nahoře, plán pod tím, patička dole
     var rightX = m + colW + m;
     var rightW = colW;
     var hH = rightW * tc.height / tc.width;
     doc.addImage(tc.toDataURL("image/png"), "PNG", rightX, m, rightW, hH);
-    var planSize = Math.min(rightW, pageH - 2 * m - hH - 4);
-    var planX = rightX + (rightW - planSize) / 2;
-    doc.addImage(oc.toDataURL("image/png"), "PNG", planX, m + hH + 4, planSize, planSize);
-    var fY = m + hH + 4 + planSize + 4;
+    // Patička má pevný poměr stran (fc je vždy 800×60) — spočítej ji předem a rezervuj jí místo,
+    // aby se nikdy nezahazovala kvůli nedostatku prostoru (užší sloupec než u portrait PDF)
     var fH = rightW * fc.height / fc.width;
-    if (fY + fH <= pageH - m) {
-      doc.addImage(fc.toDataURL("image/png"), "PNG", rightX, fY, rightW, fH);
-    }
+    var planSize = Math.max(0, Math.min(rightW, pageH - 2 * m - hH - gap - fH - gap));
+    var planX = rightX + (rightW - planSize) / 2;
+    doc.addImage(oc.toDataURL("image/png"), "PNG", planX, m + hH + gap, planSize, planSize);
+    var fY = m + hH + gap + planSize + gap;
+    doc.addImage(fc.toDataURL("image/png"), "PNG", rightX, fY, rightW, fH);
+    // Zelené orámování celé tiskové plochy (stejný duch jako registrační značky na letáku)
+    doc.setDrawColor(58, 125, 62);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(m, m, pageW - 2 * m, pageH - 2 * m, 2, 2, "S");
     return doc.output("blob");
   }).then(function (pdfBlob) {
     var namePart = sanitizeFilenamePart(customer.name) || "zakaznik";
