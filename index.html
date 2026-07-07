@@ -1418,10 +1418,11 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     });
     var pageW = 297,
       pageH = 210,
-      m = 8,
-      gap = 4;
-    var colW = (pageW - 3 * m) / 2;
-    // Levá polovina — leták, poměr stran zachován
+      m = 3,
+      innerGap = 6,
+      gap = 3;
+    var colW = (pageW - 2 * m - innerGap) / 2;
+    // Levá polovina — leták, poměr stran zachován, vyplní co nejvíc plochy
     var letakAspect = letakCanvas.width / letakCanvas.height;
     var letakH = pageH - 2 * m;
     var letakW = letakH * letakAspect;
@@ -1433,7 +1434,7 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     var letakY = m + (pageH - 2 * m - letakH) / 2;
     doc.addImage(letakCanvas.toDataURL("image/png"), "PNG", letakX, letakY, letakW, letakH);
     // Pravá polovina — info text nahoře, plán pod tím, patička dole
-    var rightX = m + colW + m;
+    var rightX = m + colW + innerGap;
     var rightW = colW;
     var hH = rightW * tc.height / tc.width;
     doc.addImage(tc.toDataURL("image/png"), "PNG", rightX, m, rightW, hH);
@@ -1445,10 +1446,10 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     doc.addImage(oc.toDataURL("image/png"), "PNG", planX, m + hH + gap, planSize, planSize);
     var fY = m + hH + gap + planSize + gap;
     doc.addImage(fc.toDataURL("image/png"), "PNG", rightX, fY, rightW, fH);
-    // Zelené orámování celé tiskové plochy (stejný duch jako registrační značky na letáku)
+    // Zelené orámování těsně u okraje stránky — ostré rohy, silná 2mm linka (styl registračních značek letáku)
     doc.setDrawColor(58, 125, 62);
-    doc.setLineWidth(0.6);
-    doc.roundedRect(m, m, pageW - 2 * m, pageH - 2 * m, 2, 2, "S");
+    doc.setLineWidth(2);
+    doc.rect(m, m, pageW - 2 * m, pageH - 2 * m, "S");
     return doc.output("blob");
   }).then(function (pdfBlob) {
     var namePart = sanitizeFilenamePart(customer.name) || "zakaznik";
