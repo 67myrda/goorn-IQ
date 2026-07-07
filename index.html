@@ -1418,9 +1418,10 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     });
     var pageW = 297,
       pageH = 210,
-      m = 3,
-      innerGap = 6,
-      gap = 3;
+      m = 1.5,
+      innerGap = 3,
+      gap = 3,
+      bottomPad = 5;
     var colW = (pageW - 2 * m - innerGap) / 2;
     // Levá polovina — leták, poměr stran zachován, vyplní co nejvíc plochy
     var letakAspect = letakCanvas.width / letakCanvas.height;
@@ -1438,15 +1439,15 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     var rightW = colW;
     var hH = rightW * tc.height / tc.width;
     doc.addImage(tc.toDataURL("image/png"), "PNG", rightX, m, rightW, hH);
-    // Patička má pevný poměr stran (fc je vždy 800×60) — spočítej ji předem a rezervuj jí místo,
-    // aby se nikdy nezahazovala kvůli nedostatku prostoru (užší sloupec než u portrait PDF)
+    // Patička má pevný poměr stran (fc je vždy 800×60) — spočítej ji předem a rezervuj jí místo.
+    // bottomPad navíc zajišťuje, že patička nikdy nelízá rámeček — zůstane nad ním vzduch.
     var fH = rightW * fc.height / fc.width;
-    var planSize = Math.max(0, Math.min(rightW, pageH - 2 * m - hH - gap - fH - gap));
+    var planSize = Math.max(0, Math.min(rightW, pageH - 2 * m - hH - gap - fH - gap - bottomPad));
     var planX = rightX + (rightW - planSize) / 2;
     doc.addImage(oc.toDataURL("image/png"), "PNG", planX, m + hH + gap, planSize, planSize);
     var fY = m + hH + gap + planSize + gap;
     doc.addImage(fc.toDataURL("image/png"), "PNG", rightX, fY, rightW, fH);
-    // Zelené orámování těsně u okraje stránky — ostré rohy, silná 2mm linka (styl registračních značek letáku)
+    // Zelené orámování — posunuté co nejblíž skutečné hraně papíru (tiskárna zvládá bezokrajový tisk)
     doc.setDrawColor(58, 125, 62);
     doc.setLineWidth(2);
     doc.rect(m, m, pageW - 2 * m, pageH - 2 * m, "S");
