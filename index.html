@@ -364,17 +364,7 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
   ctx.fillText(line, x, y);
   return y + lineHeight;
 }
-function exportPDF(shape, devices, reach, customer, results) {
-  if (!window.jspdf) {
-    alert("PDF se načítá, zkuste za chvíli.");
-    return;
-  }
-  var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4"
-  });
+function buildPlanCanvas(shape, devices, reach) {
   var cells = getBuildingCells(shape);
   var bW = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray((shape.cells || []).map(function (c) {
     return c.x + 1;
@@ -505,91 +495,117 @@ function exportPDF(shape, devices, reach, customer, results) {
   ctx.textAlign = "left";
   ctx.fillText("5 m", 12 + 5 * sc + 6, csize - 12);
   ctx.fillText("Kružnice zobrazuje účinný dosah přístroje", 12, csize - 30);
+  return {
+    canvas: oc,
+    cells: cells
+  };
+}
+function buildInfoTextCanvas(customer, results, cells, devices, reach, logoImg) {
+  // Text canvas — kreslí se nejdřív do "pracovní" plochy s rezervou, na konci se ořízne na skutečně použitou výšku
+  var tc = document.createElement("canvas");
+  tc.width = 800;
+  var hasResults = results && (results.humidityBefore || results.humidityAfter || results.notes);
+  tc.height = 550;
+  var tctx = tc.getContext("2d");
+  tctx.fillStyle = "#FFFFFF";
+  tctx.fillRect(0, 0, tc.width, tc.height);
+  var logoH = 40;
+  var logoW = logoH * (logoImg.width / logoImg.height);
+  tctx.drawImage(logoImg, 16, 12, logoW, logoH);
+  tctx.fillStyle = "#685E52";
+  tctx.font = "15px Arial";
+  var ty = 76;
+  if (customer.name) {
+    tctx.fillStyle = "#3A7D3E";
+    tctx.font = "bold 20px Arial";
+    tctx.fillText("Z\xE1kazn\xEDk: ".concat(customer.name).concat(customer.city ? " · " + customer.city : ""), 16, ty);
+    ty += 28;
+    tctx.fillStyle = "#685E52";
+    tctx.font = "15px Arial";
+  }
+  tctx.fillText("Plocha: ~".concat(cells.length, " m\xB2  \xB7  Podlaž\xED: ").concat(customer.floors, "  \xB7  Př\xEDstroje: ").concat(devices.length), 16, ty);
+  ty += 22;
+  tctx.fillText("Pokryt\xED: ".concat(calcCoverage(cells, devices, reach), " % plochy  \xB7  Dosah př\xEDstroje: ").concat(reach, " m"), 16, ty);
+  ty += 28;
+  tctx.fillStyle = "#3A7D3E";
+  tctx.font = "bold 16px Arial";
+  tctx.fillText("Doporučen\xFD počet př\xEDstrojů: ".concat(devices.length), 16, ty);
+  ty += 22;
+  if (customer.notes) {
+    tctx.fillStyle = "#685E52";
+    tctx.font = "14px Arial";
+    ty += 4;
+    ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(customer.notes), 16, ty, tc.width - 32, 18, 3);
+  }
+  ty += 8;
+  tctx.fillStyle = "#7A6249";
+  tctx.font = "bold 14px Arial";
+  tctx.fillText("Výsledky měření:", 16, ty);
+  ty += 20;
+  ty += 10;
+  tctx.fillStyle = "#3A7D3E";
+  tctx.font = "bold 17px Arial";
+  tctx.fillText("Sklep: max..........% Ø..........% | Podlaž\xED: max..........% Ø..........%", 16, ty);
+  ty += 24;
+  if (hasResults) {
+    if (results.humidityBefore) {
+      tctx.fillStyle = "#3A7D3E";
+      tctx.font = "bold 16px Arial";
+      tctx.fillText("Před: ".concat(results.humidityBefore), 16, ty);
+      ty += 22;
+    }
+    tctx.fillStyle = "#685E52";
+    tctx.font = "13px Arial";
+    if (results.humidityAfter) tctx.fillText("Vlhkost po: ".concat(results.humidityAfter), 16, ty), ty += 18;
+    if (results.measureDate) tctx.fillText("Datum měřen\xED: ".concat(results.measureDate), 16, ty), ty += 18;
+    if (results.notes) ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(results.notes), 16, ty, tc.width - 32, 18, 3);
+  }
+  // Ořízni canvas na skutečně použitou výšku — žádné plýtvání místem, žádný přetek přes okraj stránky
+  var usedH = Math.min(tc.height, Math.ceil(ty) + 12);
+  var tcFinal = document.createElement("canvas");
+  tcFinal.width = 800;
+  tcFinal.height = usedH;
+  tcFinal.getContext("2d").drawImage(tc, 0, 0, 800, usedH, 0, 0, 800, usedH);
+  return tcFinal;
+}
+function buildFooterCanvas(logoImg) {
+  var fc = document.createElement("canvas");
+  fc.width = 800;
+  fc.height = 60;
+  var fctx = fc.getContext("2d");
+  fctx.fillStyle = "#FFFFFF";
+  fctx.fillRect(0, 0, 800, 60);
+  fctx.fillStyle = "#9C9080";
+  fctx.font = "11px Arial";
+  fctx.fillText("Umístění přístrojů určuje technik při instalaci. Pozice jsou orientační.", 12, 16);
+  fctx.fillText("Dosah 14 m (optimální), tolerance ±2 m. Koule dosahu pokrývá 28 m vertikálně.", 12, 32);
+  fctx.fillStyle = "#D4622A";
+  fctx.font = "11px Arial";
+  fctx.fillText("Pro GOORN  ©  ⁶⁷〽️  with Claude.ai  2026", 12, 52);
+  var smallLogoH = 22;
+  var smallLogoW = smallLogoH * (logoImg.width / logoImg.height);
+  fctx.drawImage(logoImg, 800 - smallLogoW - 12, 60 - smallLogoH - 6, smallLogoW, smallLogoH);
+  return fc;
+}
+function exportPDF(shape, devices, reach, customer, results) {
+  if (!window.jspdf) {
+    alert("PDF se načítá, zkuste za chvíli.");
+    return;
+  }
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4"
+  });
+  var planData = buildPlanCanvas(shape, devices, reach);
+  var oc = planData.canvas,
+    cells = planData.cells;
   // Logo se načítá asynchronně, teprve poté se sestaví text/patička a uloží PDF
   var logoImg = new Image();
   logoImg.onload = function () {
-    // Text canvas — kreslí se nejdřív do "pracovní" plochy s rezervou, na konci se ořízne na skutečně použitou výšku
-    var tc = document.createElement("canvas");
-    tc.width = 800;
-    var hasResults = results && (results.humidityBefore || results.humidityAfter || results.notes);
-    tc.height = 550;
-    var tctx = tc.getContext("2d");
-    tctx.fillStyle = "#FFFFFF";
-    tctx.fillRect(0, 0, tc.width, tc.height);
-    var logoH = 40;
-    var logoW = logoH * (logoImg.width / logoImg.height);
-    tctx.drawImage(logoImg, 16, 12, logoW, logoH);
-    tctx.fillStyle = "#685E52";
-    tctx.font = "15px Arial";
-    var ty = 76;
-    if (customer.name) {
-      tctx.fillStyle = "#3A7D3E";
-      tctx.font = "bold 20px Arial";
-      tctx.fillText("Z\xE1kazn\xEDk: ".concat(customer.name).concat(customer.city ? " · " + customer.city : ""), 16, ty);
-      ty += 28;
-      tctx.fillStyle = "#685E52";
-      tctx.font = "15px Arial";
-    }
-    tctx.fillText("Plocha: ~".concat(cells.length, " m\xB2  \xB7  Podlaž\xED: ").concat(customer.floors, "  \xB7  Př\xEDstroje: ").concat(devices.length), 16, ty);
-    ty += 22;
-    tctx.fillText("Pokryt\xED: ".concat(calcCoverage(cells, devices, reach), " % plochy  \xB7  Dosah př\xEDstroje: ").concat(reach, " m"), 16, ty);
-    ty += 28;
-    tctx.fillStyle = "#3A7D3E";
-    tctx.font = "bold 16px Arial";
-    tctx.fillText("Doporučen\xFD počet př\xEDstrojů: ".concat(devices.length), 16, ty);
-    ty += 22;
-    if (customer.notes) {
-      tctx.fillStyle = "#685E52";
-      tctx.font = "14px Arial";
-      ty += 4;
-      ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(customer.notes), 16, ty, tc.width - 32, 18, 3);
-    }
-    ty += 8;
-    tctx.fillStyle = "#7A6249";
-    tctx.font = "bold 14px Arial";
-    tctx.fillText("Výsledky měření:", 16, ty);
-    ty += 20;
-    ty += 10;
-    tctx.fillStyle = "#3A7D3E";
-    tctx.font = "bold 17px Arial";
-    tctx.fillText("Sklep: max..........% Ø..........% | Podlaž\xED: max..........% Ø..........%", 16, ty);
-    ty += 24;
-    if (hasResults) {
-      if (results.humidityBefore) {
-        tctx.fillStyle = "#3A7D3E";
-        tctx.font = "bold 16px Arial";
-        tctx.fillText("Před: ".concat(results.humidityBefore), 16, ty);
-        ty += 22;
-      }
-      tctx.fillStyle = "#685E52";
-      tctx.font = "13px Arial";
-      if (results.humidityAfter) tctx.fillText("Vlhkost po: ".concat(results.humidityAfter), 16, ty), ty += 18;
-      if (results.measureDate) tctx.fillText("Datum měřen\xED: ".concat(results.measureDate), 16, ty), ty += 18;
-      if (results.notes) ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(results.notes), 16, ty, tc.width - 32, 18, 3);
-    }
-    // Ořízni canvas na skutečně použitou výšku — žádné plýtvání místem, žádný přetek přes okraj stránky
-    var usedH = Math.min(tc.height, Math.ceil(ty) + 12);
-    var tcFinal = document.createElement("canvas");
-    tcFinal.width = 800;
-    tcFinal.height = usedH;
-    tcFinal.getContext("2d").drawImage(tc, 0, 0, 800, usedH, 0, 0, 800, usedH);
-    tc = tcFinal;
-    var fc = document.createElement("canvas");
-    fc.width = 800;
-    fc.height = 60;
-    var fctx = fc.getContext("2d");
-    fctx.fillStyle = "#FFFFFF";
-    fctx.fillRect(0, 0, 800, 60);
-    fctx.fillStyle = "#9C9080";
-    fctx.font = "11px Arial";
-    fctx.fillText("Umístění přístrojů určuje technik při instalaci. Pozice jsou orientační.", 12, 16);
-    fctx.fillText("Dosah 14 m (optimální), tolerance ±2 m. Koule dosahu pokrývá 28 m vertikálně.", 12, 32);
-    fctx.fillStyle = "#D4622A";
-    fctx.font = "11px Arial";
-    fctx.fillText("Pro GOORN  ©  ⁶⁷〽️  with Claude.ai  2026", 12, 52);
-    var smallLogoH = 22;
-    var smallLogoW = smallLogoH * (logoImg.width / logoImg.height);
-    fctx.drawImage(logoImg, 800 - smallLogoW - 12, 60 - smallLogoH - 6, smallLogoW, smallLogoH);
+    var tc = buildInfoTextCanvas(customer, results, cells, devices, reach, logoImg);
+    var fc = buildFooterCanvas(logoImg);
     var m = 10,
       iW = 210 - 2 * m;
     doc.addImage(tc.toDataURL("image/png"), "PNG", m, m, iW, iW * tc.height / tc.width);
@@ -1263,6 +1279,185 @@ function _driveUploadFile() {
   }));
   return _driveUploadFile.apply(this, arguments);
 }
+// ─── FÁZE 3 — kombinovaný PDF (Leták + Plán), pojmenované Drive složky ────────
+var LETAK_DRIVE_FILE_ID = "14CRMjV1y6ubwUEnOjE46daUS4MYjqpVD";
+var DRIVE_FOLDER_PROTOKOLY = "5\uFE0F\u20E3\uD83D\uDFE2IQ pl PROTOKOLY";
+var _namedDriveFolderCache = {};
+async function getOrCreateNamedDriveFolder(accessToken, folderName) {
+  if (_namedDriveFolderCache[folderName]) return _namedDriveFolderCache[folderName];
+  var q = encodeURIComponent("mimeType='application/vnd.google-apps.folder' and name='" + folderName + "' and trashed=false");
+  var searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=" + q + "&fields=files(id,name)", {
+    headers: {
+      Authorization: "Bearer " + accessToken
+    }
+  });
+  if (!searchRes.ok) {
+    throw Object.assign(new Error("Vyhled\xE1n\xED slo\u017Eky \"" + folderName + "\" na Disku selhalo (" + searchRes.status + ")"), {
+      status: searchRes.status
+    });
+  }
+  var searchData = await searchRes.json();
+  if (searchData.files && searchData.files.length > 0) {
+    _namedDriveFolderCache[folderName] = searchData.files[0].id;
+    return _namedDriveFolderCache[folderName];
+  }
+  var createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: folderName,
+      mimeType: "application/vnd.google-apps.folder"
+    })
+  });
+  if (!createRes.ok) {
+    throw Object.assign(new Error("Vytvo\u0159en\xED slo\u017Eky \"" + folderName + "\" na Disku selhalo (" + createRes.status + ")"), {
+      status: createRes.status
+    });
+  }
+  var createData = await createRes.json();
+  _namedDriveFolderCache[folderName] = createData.id;
+  return _namedDriveFolderCache[folderName];
+}
+async function driveUploadBlobToFolder(blob, accessToken, filename, folderName) {
+  var folderId = await getOrCreateNamedDriveFolder(accessToken, folderName);
+  var metadata = {
+    name: filename,
+    parents: [folderId]
+  };
+  var boundary = "-------goorn" + Date.now();
+  var delimiter = "\r\n--" + boundary + "\r\n";
+  var closeDelim = "\r\n--" + boundary + "--";
+  var base64Data = await fileToBase64(blob);
+  var multipartBody = delimiter + "Content-Type: application/json; charset=UTF-8\r\n\r\n" + JSON.stringify(metadata) + delimiter + "Content-Type: " + (blob.type || "application/pdf") + "\r\n" + "Content-Transfer-Encoding: base64\r\n\r\n" + base64Data + closeDelim;
+  var uploadRes = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + accessToken,
+      "Content-Type": 'multipart/related; boundary="' + boundary + '"'
+    },
+    body: multipartBody
+  });
+  if (!uploadRes.ok) {
+    throw Object.assign(new Error("Nahr\xE1n\xED protokolu na Disk selhalo (" + uploadRes.status + ")"), {
+      status: uploadRes.status
+    });
+  }
+  var uploadData = await uploadRes.json();
+  return {
+    id: uploadData.id,
+    link: "https://drive.google.com/file/d/" + uploadData.id + "/view"
+  };
+}
+function loadDriveImage(accessToken, fileId) {
+  return fetch("https://www.googleapis.com/drive/v3/files/" + fileId + "?alt=media", {
+    headers: {
+      Authorization: "Bearer " + accessToken
+    }
+  }).then(function (res) {
+    if (!res.ok) {
+      throw Object.assign(new Error("Stažen\xED let\xE1ku z Disku selhalo (" + res.status + ")"), {
+        status: res.status
+      });
+    }
+    return res.blob();
+  }).then(function (blob) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(blob);
+      var img = new Image();
+      img.onload = function () {
+        resolve(img);
+      };
+      img.onerror = function () {
+        reject(new Error("Let\xE1k se nepoda\u0159ilo na\u010D\xEDst jako obr\xE1zek."));
+      };
+      img.src = url;
+    });
+  });
+}
+function sanitizeFilenamePart(s) {
+  return (s || "").trim().replace(/,/g, "").replace(/\s+/g, "_");
+}
+function exportCombinedPDF(shape, devices, reach, customer, results, driveToken) {
+  if (!window.jspdf) {
+    return Promise.reject(new Error("PDF se ještě načítá, zkus to za chvíli."));
+  }
+  if (!driveToken) {
+    return Promise.reject(Object.assign(new Error("Nejsi přihlášen k Disku."), {
+      needsDrive: true
+    }));
+  }
+  var jsPDF = window.jspdf.jsPDF;
+  var planData = buildPlanCanvas(shape, devices, reach);
+  var oc = planData.canvas,
+    cells = planData.cells;
+  var logoImg = new Image();
+  var logoPromise = new Promise(function (resolve, reject) {
+    logoImg.onload = function () {
+      resolve();
+    };
+    logoImg.onerror = function () {
+      reject(new Error("Logo se nepoda\u0159ilo na\u010D\xEDst."));
+    };
+    logoImg.src = LOGO_IQ;
+  });
+  return Promise.all([logoPromise, loadDriveImage(driveToken, LETAK_DRIVE_FILE_ID)]).then(function (res) {
+    var letakImg = res[1];
+    var letakCanvas = document.createElement("canvas");
+    letakCanvas.width = letakImg.naturalWidth || letakImg.width;
+    letakCanvas.height = letakImg.naturalHeight || letakImg.height;
+    letakCanvas.getContext("2d").drawImage(letakImg, 0, 0);
+    var tc = buildInfoTextCanvas(customer, results, cells, devices, reach, logoImg);
+    var fc = buildFooterCanvas(logoImg);
+    var doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4"
+    });
+    var pageW = 297,
+      pageH = 210,
+      m = 10;
+    var colW = (pageW - 3 * m) / 2;
+    // Levá polovina — leták, poměr stran zachován
+    var letakAspect = letakCanvas.width / letakCanvas.height;
+    var letakH = pageH - 2 * m;
+    var letakW = letakH * letakAspect;
+    if (letakW > colW) {
+      letakW = colW;
+      letakH = letakW / letakAspect;
+    }
+    var letakX = m + (colW - letakW) / 2;
+    var letakY = m + (pageH - 2 * m - letakH) / 2;
+    doc.addImage(letakCanvas.toDataURL("image/png"), "PNG", letakX, letakY, letakW, letakH);
+    // Pravá polovina — info text nahoře, plán pod tím, patička dole (pokud se vejde)
+    var rightX = m + colW + m;
+    var rightW = colW;
+    var hH = rightW * tc.height / tc.width;
+    doc.addImage(tc.toDataURL("image/png"), "PNG", rightX, m, rightW, hH);
+    var planSize = Math.min(rightW, pageH - 2 * m - hH - 4);
+    var planX = rightX + (rightW - planSize) / 2;
+    doc.addImage(oc.toDataURL("image/png"), "PNG", planX, m + hH + 4, planSize, planSize);
+    var fY = m + hH + 4 + planSize + 4;
+    var fH = rightW * fc.height / fc.width;
+    if (fY + fH <= pageH - m) {
+      doc.addImage(fc.toDataURL("image/png"), "PNG", rightX, fY, rightW, fH);
+    }
+    return doc.output("blob");
+  }).then(function (pdfBlob) {
+    var namePart = sanitizeFilenamePart(customer.name) || "zakaznik";
+    var cityPart = sanitizeFilenamePart(customer.city);
+    var filename = [namePart, cityPart, "iqp_protokol"].filter(Boolean).join("_") + ".pdf";
+    return driveUploadBlobToFolder(pdfBlob, driveToken, filename, DRIVE_FOLDER_PROTOKOLY);
+  }).then(function (uploadResult) {
+    return {
+      id: uploadResult.id,
+      link: uploadResult.link,
+      generatedAt: new Date().toISOString()
+    };
+  });
+}
 function ImageUploadSlot(props) {
   var lbl = {
     fontSize: 9,
@@ -1703,6 +1898,18 @@ function PlanEditor(_ref10) {
     _useStatePhoto2 = _slicedToArray(_useStatePhoto, 2),
     filledPlanPhoto = _useStatePhoto2[0],
     setFilledPlanPhoto = _useStatePhoto2[1];
+  var _useStateProtokol = useState(plan.protokolPdf || null),
+    _useStateProtokol2 = _slicedToArray(_useStateProtokol, 2),
+    protokolPdf = _useStateProtokol2[0],
+    setProtokolPdf = _useStateProtokol2[1];
+  var _useStateGenProtokol = useState(false),
+    _useStateGenProtokol2 = _slicedToArray(_useStateGenProtokol, 2),
+    generatingProtokol = _useStateGenProtokol2[0],
+    setGeneratingProtokol = _useStateGenProtokol2[1];
+  var _useStateProtokolErr = useState(null),
+    _useStateProtokolErr2 = _slicedToArray(_useStateProtokolErr, 2),
+    protokolError = _useStateProtokolErr2[0],
+    setProtokolError = _useStateProtokolErr2[1];
   var _useState1 = useState(plan.shape || {
       type: "rect",
       w: 12,
@@ -1803,6 +2010,7 @@ function PlanEditor(_ref10) {
       linkedOrderId: linkedOrderId,
       catastreImage: catastreImage,
       filledPlanPhoto: filledPlanPhoto,
+      protokolPdf: protokolPdf,
       updatedAt: new Date().toISOString(),
       displayName: customer.name || "Bez jména"
     }), initialLinkedOrderId);
@@ -1811,6 +2019,32 @@ function PlanEditor(_ref10) {
     return exportPDF(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
     }), devices, reach, customer, results);
+  };
+  var handleTiskovaSada = function handleTiskovaSada() {
+    if (!driveToken) {
+      setProtokolError("Nejsi přihlášen k Disku. Klikni na \"Připojit Disk\".");
+      if (onRequestDrive) onRequestDrive();
+      return;
+    }
+    setGeneratingProtokol(true);
+    setProtokolError(null);
+    exportCombinedPDF(_objectSpread(_objectSpread({}, shape), {}, {
+      cells: drawnCells
+    }), devices, reach, customer, results, driveToken).then(function (result) {
+      setProtokolPdf(result);
+    }).catch(function (err) {
+      var status = err && err.status;
+      if (status === 401) {
+        if (onTokenInvalid) onTokenInvalid();
+        setProtokolError("Přístup k Disku vypršel. Klikni znovu na \"Připojit Disk\".");
+      } else if (status === 403) {
+        setProtokolError("Disk odmítl přístup (403) — zkontroluj oprávnění Google Drive API v Google Cloud Console.");
+      } else {
+        setProtokolError(err && err.message ? err.message : "Generování tiskové sady selhalo");
+      }
+    }).finally(function () {
+      setGeneratingProtokol(false);
+    });
   };
   var covColor = coverage >= 100 ? C.greenBright : coverage >= 80 ? C.orange : C.danger;
   var inp = {
@@ -1920,7 +2154,41 @@ function PlanEditor(_ref10) {
       fontWeight: 700,
       cursor: "pointer"
     }
-  }, "↓ PDF"))),
+  }, "↓ PDF"), React.createElement("button", {
+    onClick: handleTiskovaSada,
+    disabled: generatingProtokol,
+    style: {
+      padding: "7px 12px",
+      borderRadius: 7,
+      border: "none",
+      background: generatingProtokol ? C.greenPale : C.orange,
+      color: generatingProtokol ? C.green : "#fff",
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, generatingProtokol ? "Generuji…" : "🖨 Tisková sada"))),
+  (protokolError || protokolPdf) && React.createElement("div", {
+    style: {
+      padding: "6px 12px",
+      fontSize: 11.5,
+      background: protokolError ? "#FBEAEA" : C.greenPale,
+      borderBottom: "1px solid ".concat(C.border),
+      color: protokolError ? C.danger : C.greenBright,
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, protokolError ? "⚠️ " + protokolError : React.createElement("a", {
+    href: protokolPdf.link,
+    target: "_blank",
+    rel: "noopener",
+    style: {
+      color: C.greenBright,
+      fontWeight: 700,
+      textDecoration: "underline"
+    }
+  }, "✅ Tisková sada uložena na Disk — Otevřít")),
   // Tab bar
   React.createElement("div", {
     style: {
