@@ -1909,6 +1909,18 @@ function PlanEditor(_ref10) {
     _useStateProtokol2 = _slicedToArray(_useStateProtokol, 2),
     protokolPdf = _useStateProtokol2[0],
     setProtokolPdf = _useStateProtokol2[1];
+  // Okamžitá persistence Drive referencí do Firestore (nezávisle na tlačítku Uložit)
+  var persistPlanField = function persistPlanField(fields) {
+    if (!user || !plan.id) return;
+    db.collection("users").doc(user.uid).collection("iq_plans").doc(plan.id).set(_objectSpread(_objectSpread({}, fields), {}, {
+      displayName: plan.displayName || "Bez jména",
+      updatedAt: new Date().toISOString()
+    }), {
+      merge: true
+    }).catch(function (e) {
+      return console.error("Okamžité uložení reference selhalo:", e);
+    });
+  };
   var _useStateGenProtokol = useState(false),
     _useStateGenProtokol2 = _slicedToArray(_useStateGenProtokol, 2),
     generatingProtokol = _useStateGenProtokol2[0],
@@ -2039,6 +2051,9 @@ function PlanEditor(_ref10) {
       cells: drawnCells
     }), devices, reach, customer, results, driveToken).then(function (result) {
       setProtokolPdf(result);
+      persistPlanField({
+        protokolPdf: result
+      });
     }).catch(function (err) {
       var status = err && err.status;
       if (status === 401) {
@@ -2675,7 +2690,12 @@ function PlanEditor(_ref10) {
   React.createElement(ImageUploadSlot, {
     label: "Screenshot z katastru",
     value: catastreImage,
-    onUploaded: setCatastreImage,
+    onUploaded: function onUploaded(v) {
+      setCatastreImage(v);
+      persistPlanField({
+        catastreImage: v
+      });
+    },
     accessToken: driveToken,
     driveError: driveError,
     onRequestDrive: onRequestDrive,
@@ -2684,7 +2704,12 @@ function PlanEditor(_ref10) {
   }), React.createElement(ImageUploadSlot, {
     label: "Foto vypln\u011Bn\u00E9ho pl\xE1nu",
     value: filledPlanPhoto,
-    onUploaded: setFilledPlanPhoto,
+    onUploaded: function onUploaded(v) {
+      setFilledPlanPhoto(v);
+      persistPlanField({
+        filledPlanPhoto: v
+      });
+    },
     accessToken: driveToken,
     driveError: driveError,
     onRequestDrive: onRequestDrive,
@@ -3474,13 +3499,26 @@ function App() {
                 });
               }
               if (plan.linkedOrderId) {
-                ordersCol.doc(plan.linkedOrderId).set({
-                  planId: plan.id,
-                  deviceCount: (plan.devices || []).length
-                }, {
-                  merge: true
+                var _orderRef = ordersCol.doc(plan.linkedOrderId);
+                _orderRef.get().then(function (snap) {
+                  if (!snap.exists) {
+                    alert("⚠️ Propojená zakázka už neexistuje — synchronizace počtu přístrojů se neprovedla. Zkontroluj propojení v záložce Zákazník.");
+                    return null;
+                  }
+                  var data = snap.data() || {};
+                  var update = {
+                    planId: plan.id
+                  };
+                  // deviceCount 0 v Zakázkách = "klient nekoupil" (ruční rozhodnutí) — nepřepisovat
+                  if (data.deviceCount !== 0) {
+                    update.deviceCount = (plan.devices || []).length;
+                  }
+                  return _orderRef.set(update, {
+                    merge: true
+                  });
                 }).catch(function (e) {
-                  return console.error("Synchronizace se zakázkou selhala:", e);
+                  console.error("Synchronizace se zakázkou selhala:", e);
+                  alert("⚠️ Synchronizace se zakázkou selhala: " + (e && e.message ? e.message : e));
                 });
               }
             }
