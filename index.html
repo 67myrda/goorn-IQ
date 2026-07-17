@@ -606,7 +606,9 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
   var CLIP_PAD = 1.5;
   var devH = FLOOR_H * .75;
   var W = 800,
-    H = 230;
+    PANEL_H = 280,
+    GAP = 26;
+  var H = 2 * PANEL_H + GAP + 30;
   var sc2 = document.createElement("canvas");
   sc2.width = W;
   sc2.height = H;
@@ -619,30 +621,28 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
     coord: function coord(d) {
       return d.x;
     },
-    x0: 14,
-    pw: 376
+    y0: 0
   }, {
     title: "Čelní pohled",
     width: bH,
     coord: function coord(d) {
       return d.y;
     },
-    x0: 410,
-    pw: 376
+    y0: PANEL_H + GAP
   }];
   panels.forEach(function (p) {
-    var worldW = p.width + 12;
+    var worldW = p.width + 2 * reach + 4;
     var worldH = topM - botM + 2 * CLIP_PAD + 2;
-    var sc = Math.min(p.pw / worldW, (H - 40) / worldH);
-    var ox = p.x0 + (p.pw - p.width * sc) / 2;
+    var sc = Math.min((W - 28) / worldW, (PANEL_H - 34) / worldH);
+    var ox = 14 + ((W - 28) - p.width * sc) / 2;
     var yOf = function yOf(m) {
-      return 26 + (topM + CLIP_PAD + 1 - m) * sc;
+      return p.y0 + 30 + (topM + CLIP_PAD + 1 - m) * sc;
     };
     ctx.fillStyle = "#7A7264";
-    ctx.font = "bold 12px Arial";
+    ctx.font = "bold 13px Arial";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText(p.title, p.x0, 16);
+    ctx.fillText(p.title, 14, p.y0 + 18);
     // pásma budovy
     ctx.fillStyle = "#E9F3EA";
     ctx.fillRect(ox, yOf(FLOOR_H), p.width * sc, FLOOR_H * sc);
@@ -654,8 +654,8 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
     ctx.strokeStyle = "#8A6F4D";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(p.x0, yOf(0));
-    ctx.lineTo(p.x0 + p.pw, yOf(0));
+    ctx.moveTo(14, yOf(0));
+    ctx.lineTo(W - 14, yOf(0));
     ctx.stroke();
     // obrys budovy
     ctx.strokeStyle = "#487A4C";
@@ -663,13 +663,13 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
     ctx.strokeRect(ox, yOf(topM), p.width * sc, (topM - botM) * sc);
     // popisky podlaží
     ctx.fillStyle = "#9C9080";
-    ctx.font = "10px Arial";
-    ctx.fillText("1. NP", ox + 5, yOf(FLOOR_H) + 12);
-    if (hasBasement) ctx.fillText("Sklep", ox + 5, yOf(0) + 12);
-    // kružnice dosahu — oříznuté kousek nad stropem / pod podlahou
+    ctx.font = "11px Arial";
+    ctx.fillText("1. NP", ox + 6, yOf(FLOOR_H) + 14);
+    if (hasBasement) ctx.fillText("Sklep", ox + 6, yOf(0) + 14);
+    // kružnice dosahu — vertikálně oříznuté kousek nad stropem / pod podlahou, stranově celé
     ctx.save();
     ctx.beginPath();
-    ctx.rect(p.x0, yOf(topM + CLIP_PAD), p.pw, (topM - botM + 2 * CLIP_PAD) * sc);
+    ctx.rect(0, yOf(topM + CLIP_PAD), W, (topM - botM + 2 * CLIP_PAD) * sc);
     ctx.clip();
     (altDevices || []).forEach(function (d) {
       var px = ox + p.coord(d) * sc,
@@ -692,20 +692,20 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
       ctx.fillStyle = "#3A7D3E10";
       ctx.fill();
       ctx.strokeStyle = "#3A7D3E";
-      ctx.lineWidth = 1.6;
+      ctx.lineWidth = 1.8;
       ctx.stroke();
     });
     ctx.restore();
-    // body přístrojů (nad clipem, ať jsou vždy vidět)
+    // body přístrojů
     (altDevices || []).forEach(function (d, i) {
       var px = ox + p.coord(d) * sc,
         py = yOf(devH);
       ctx.beginPath();
-      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
       ctx.fillStyle = "#6B6558";
       ctx.fill();
       ctx.fillStyle = "#fff";
-      ctx.font = "bold 8px Arial";
+      ctx.font = "bold 9px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(String.fromCharCode(65 + i % 26), px, py);
@@ -714,11 +714,11 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
       var px = ox + p.coord(d) * sc,
         py = yOf(devH);
       ctx.beginPath();
-      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
       ctx.fillStyle = "#3A7D3E";
       ctx.fill();
       ctx.fillStyle = "#fff";
-      ctx.font = "bold 8px Arial";
+      ctx.font = "bold 9px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(i + 1, px, py);
@@ -727,7 +727,7 @@ function buildSectionCanvas(shape, devices, altDevices, reach, floors) {
     ctx.textBaseline = "alphabetic";
   });
   ctx.fillStyle = "#9C9080";
-  ctx.font = "10px Arial";
+  ctx.font = "11px Arial";
   ctx.fillText("Vertikální dosah přístroje (řez budovou) · výška podlaží 3 m · přístroj v ~75 % výšky 1. NP", 14, H - 8);
   return sc2;
 }
@@ -775,18 +775,16 @@ function exportPDF(shape, devices, reach, customer, results, altDevices) {
     doc.addImage(tc.toDataURL("image/png"), "PNG", m, m, iW, iW * tc.height / tc.width);
     var hH = iW * tc.height / tc.width;
     var footH = iW * fc.height / fc.width;
+    doc.addImage(oc.toDataURL("image/png"), "PNG", m, m + hH + 4, iW, iW);
+    var fY = m + hH + 4 + iW + 4;
+    if (fY < 285) doc.addImage(fc.toDataURL("image/png"), "PNG", m, fY, iW, footH);
     if (secCanvas) {
+      doc.addPage();
+      doc.addImage(tc.toDataURL("image/png"), "PNG", m, m, iW, hH);
       var secH = iW * secCanvas.height / secCanvas.width;
-      var planSize = Math.min(iW, 285 - (m + hH + 4) - secH - 8 - footH);
-      doc.addImage(oc.toDataURL("image/png"), "PNG", m + (iW - planSize) / 2, m + hH + 4, planSize, planSize);
-      var secY = m + hH + 4 + planSize + 4;
-      doc.addImage(secCanvas.toDataURL("image/png"), "PNG", m, secY, iW, secH);
-      var fY2 = secY + secH + 4;
-      if (fY2 < 285) doc.addImage(fc.toDataURL("image/png"), "PNG", m, fY2, iW, footH);
-    } else {
-      doc.addImage(oc.toDataURL("image/png"), "PNG", m, m + hH + 4, iW, iW);
-      var fY = m + hH + 4 + iW + 4;
-      if (fY < 285) doc.addImage(fc.toDataURL("image/png"), "PNG", m, fY, iW, footH);
+      doc.addImage(secCanvas.toDataURL("image/png"), "PNG", m, m + hH + 6, iW, secH);
+      var fY2 = Math.max(m + hH + 6 + secH + 4, 285 - footH);
+      if (fY2 + footH <= 293) doc.addImage(fc.toDataURL("image/png"), "PNG", m, fY2, iW, footH);
     }
     var fn = "GoornIQ_".concat(customer.name || "plan", "_").concat(new Date().toLocaleDateString("cs-CZ").replace(/\./g, "-"), ".pdf");
     doc.save(fn);
