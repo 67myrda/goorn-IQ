@@ -364,7 +364,7 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
   ctx.fillText(line, x, y);
   return y + lineHeight;
 }
-function buildPlanCanvas(shape, devices, reach) {
+function buildPlanCanvas(shape, devices, reach, altDevices) {
   var cells = getBuildingCells(shape);
   var bW = shape.type === "draw" ? Math.max.apply(Math, [1].concat(_toConsumableArray((shape.cells || []).map(function (c) {
     return c.x + 1;
@@ -468,6 +468,28 @@ function buildPlanCanvas(shape, devices, reach) {
       }
     });
   }
+  (altDevices || []).forEach(function (d, i) {
+    var px = ox + d.x * sc,
+      py = oy + d.y * sc;
+    ctx.beginPath();
+    ctx.arc(px, py, reach * sc, 0, Math.PI * 2);
+    ctx.fillStyle = "#6B65580E";
+    ctx.fill();
+    ctx.strokeStyle = "#8A8578";
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([6, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(px, py, Math.max(8, sc * .4), 0, Math.PI * 2);
+    ctx.fillStyle = "#6B6558";
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold ".concat(Math.max(9, Math.round(sc * .35)), "px Arial");
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String.fromCharCode(65 + i % 26), px, py);
+  });
   devices.forEach(function (d, i) {
     var px = ox + d.x * sc,
       py = oy + d.y * sc;
@@ -494,7 +516,7 @@ function buildPlanCanvas(shape, devices, reach) {
   ctx.font = "11px Arial";
   ctx.textAlign = "left";
   ctx.fillText("5 m", 12 + 5 * sc + 6, csize - 12);
-  ctx.fillText("Kružnice zobrazuje účinný dosah přístroje", 12, csize - 30);
+  ctx.fillText((altDevices || []).length > 0 ? "Kružnice zobrazuje účinný dosah přístroje · šedě (A, B…) alternativní pozice" : "Kružnice zobrazuje účinný dosah přístroje", 12, csize - 30);
   return {
     canvas: oc,
     cells: cells
@@ -587,7 +609,7 @@ function buildFooterCanvas(logoImg) {
   fctx.drawImage(logoImg, 800 - smallLogoW - 12, 60 - smallLogoH - 6, smallLogoW, smallLogoH);
   return fc;
 }
-function exportPDF(shape, devices, reach, customer, results) {
+function exportPDF(shape, devices, reach, customer, results, altDevices) {
   if (!window.jspdf) {
     alert("PDF se načítá, zkuste za chvíli.");
     return;
@@ -598,7 +620,7 @@ function exportPDF(shape, devices, reach, customer, results) {
     unit: "mm",
     format: "a4"
   });
-  var planData = buildPlanCanvas(shape, devices, reach);
+  var planData = buildPlanCanvas(shape, devices, reach, altDevices);
   var oc = planData.canvas,
     cells = planData.cells;
   // Logo se načítá asynchronně, teprve poté se sestaví text/patička a uloží PDF
@@ -624,12 +646,16 @@ function PlanCanvas(_ref6) {
   var shape = _ref6.shape,
     devices = _ref6.devices,
     setDevices = _ref6.setDevices,
+    _altDevices = _ref6.altDevices,
+    setAltDevices = _ref6.setAltDevices,
+    altMode = _ref6.altMode,
     reach = _ref6.reach,
     zoom = _ref6.zoom,
     drawMode = _ref6.drawMode,
     drawnCells = _ref6.drawnCells,
     setDrawnCells = _ref6.setDrawnCells,
     onManualPlace = _ref6.onManualPlace;
+  var altDevices = _altDevices || [];
   var canvasRef = useRef(null);
   var drawingRef = useRef(false);
   var containerRef = useRef(null);
@@ -759,6 +785,28 @@ function PlanCanvas(_ref6) {
         }
       });
     }
+    altDevices.forEach(function (d, i) {
+      var px = offX + d.x * scale,
+        py = offY + d.y * scale;
+      ctx.beginPath();
+      ctx.arc(px, py, reach * scale, 0, Math.PI * 2);
+      ctx.fillStyle = "#6B655810";
+      ctx.fill();
+      ctx.strokeStyle = "#8A8578";
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([5, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(px, py, Math.max(8, scale * .4), 0, Math.PI * 2);
+      ctx.fillStyle = "#6B6558";
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold ".concat(Math.max(9, Math.round(scale * .35)), "px Inter,sans-serif");
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(String.fromCharCode(65 + i % 26), px, py);
+    });
     devices.forEach(function (d, i) {
       var px = offX + d.x * scale,
         py = offY + d.y * scale;
@@ -794,7 +842,7 @@ function PlanCanvas(_ref6) {
     ctx.textBaseline = "bottom";
     ctx.fillText("5 m", 12 + 5 * scale + 6, csz - 6);
     ctx.fillText("1 čtverec = 1 metr", 12 + 5 * scale + 36, csz - 6);
-  }, [shape, devices, reach, zoom, drawnCells, canvasSize, scale, offX, offY, bW, bH]);
+  }, [shape, devices, altDevices, reach, zoom, drawnCells, canvasSize, scale, offX, offY, bW, bH]);
   var getWorldPos = useCallback(function (e, canvas) {
     var rect = canvas.getBoundingClientRect();
     var scaleX = canvas.width / rect.width,
@@ -840,7 +888,8 @@ function PlanCanvas(_ref6) {
         x: gx + .5,
         y: gy + .5
       };
-      setDevices(function (prev) {
+      var setLayer = altMode && setAltDevices ? setAltDevices : setDevices;
+      setLayer(function (prev) {
         var idx = prev.findIndex(function (d) {
           var dx = (d.x - snap.x) * scale,
             dy = (d.y - snap.y) * scale;
@@ -852,11 +901,11 @@ function PlanCanvas(_ref6) {
         if (!activeCells.some(function (c) {
           return c.x === gx && c.y === gy;
         })) return prev;
-        if (onManualPlace) onManualPlace();
+        if (onManualPlace && !altMode) onManualPlace();
         return [].concat(_toConsumableArray(prev), [snap]);
       });
     }
-  }, [drawMode, shape, drawnCells, setDrawnCells, setDevices, getWorldPos, scale, onManualPlace]);
+  }, [drawMode, shape, drawnCells, setDrawnCells, setDevices, setAltDevices, altMode, getWorldPos, scale, onManualPlace]);
   return React.createElement("div", {
     ref: containerRef,
     style: {
@@ -1382,7 +1431,7 @@ function loadDriveImage(accessToken, fileId) {
 function sanitizeFilenamePart(s) {
   return (s || "").trim().replace(/,/g, "").replace(/\s+/g, "_");
 }
-function exportCombinedPDF(shape, devices, reach, customer, results, driveToken) {
+function exportCombinedPDF(shape, devices, reach, customer, results, driveToken, altDevices) {
   if (!window.jspdf) {
     return Promise.reject(new Error("PDF se ještě načítá, zkus to za chvíli."));
   }
@@ -1392,7 +1441,7 @@ function exportCombinedPDF(shape, devices, reach, customer, results, driveToken)
     }));
   }
   var jsPDF = window.jspdf.jsPDF;
-  var planData = buildPlanCanvas(shape, devices, reach);
+  var planData = buildPlanCanvas(shape, devices, reach, altDevices);
   var oc = planData.canvas,
     cells = planData.cells;
   var logoImg = new Image();
@@ -1944,6 +1993,14 @@ function PlanEditor(_ref10) {
     _useState12 = _slicedToArray(_useState11, 2),
     devices = _useState12[0],
     setDevices = _useState12[1];
+  var _useStateAD = useState(plan.altDevices || []),
+    _useStateAD2 = _slicedToArray(_useStateAD, 2),
+    altDevices = _useStateAD2[0],
+    setAltDevices = _useStateAD2[1];
+  var _useStateAM = useState(false),
+    _useStateAM2 = _slicedToArray(_useStateAM, 2),
+    altMode = _useStateAM2[0],
+    setAltMode = _useStateAM2[1];
   var _useState13 = useState(plan.reach || REACH_DEFAULT),
     _useState14 = _slicedToArray(_useState13, 2),
     reach = _useState14[0],
@@ -2011,6 +2068,8 @@ function PlanEditor(_ref10) {
   var handleApplyShape = function handleApplyShape(s) {
     setShape(s);
     setDevices([]);
+    setAltDevices([]);
+    setAltMode(false);
     setDrawnCells([]);
     setDrawMode(false);
   };
@@ -2026,6 +2085,7 @@ function PlanEditor(_ref10) {
         cells: drawnCells
       }),
       devices: devices,
+      altDevices: altDevices,
       reach: reach,
       customer: customer,
       results: results,
@@ -2040,7 +2100,7 @@ function PlanEditor(_ref10) {
   var handlePDF = function handlePDF() {
     return exportPDF(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
-    }), devices, reach, customer, results);
+    }), devices, reach, customer, results, altDevices);
   };
   var handleTiskovaSada = function handleTiskovaSada() {
     if (!driveToken) {
@@ -2052,7 +2112,7 @@ function PlanEditor(_ref10) {
     setProtokolError(null);
     exportCombinedPDF(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
-    }), devices, reach, customer, results, driveToken).then(function (result) {
+    }), devices, reach, customer, results, driveToken, altDevices).then(function (result) {
       setProtokolPdf(result);
       persistPlanField({
         protokolPdf: result
@@ -2467,7 +2527,26 @@ function PlanEditor(_ref10) {
     }
   }, "-"), React.createElement("button", {
     onClick: function onClick() {
-      return setDevices([]);
+      setAltMode(function (m) {
+        return !m;
+      });
+      setDrawMode(false);
+    },
+    style: {
+      padding: "10px 10px",
+      borderRadius: 7,
+      fontSize: 12,
+      fontWeight: altMode ? 700 : 500,
+      cursor: "pointer",
+      background: altMode ? "#6B6558" : C.surfaceAlt,
+      border: "1px solid ".concat(altMode ? "#6B6558" : C.border),
+      color: altMode ? "#fff" : C.textMid,
+      whiteSpace: "nowrap"
+    }
+  }, altMode ? "🅰 Alt ✓" : "🅰 Alt"), React.createElement("button", {
+    onClick: function onClick() {
+      setDevices([]);
+      setAltDevices([]);
     },
     style: {
       padding: "10px 10px",
@@ -2481,15 +2560,19 @@ function PlanEditor(_ref10) {
   }, "✕ Přístroje")), React.createElement("div", {
     style: {
       fontSize: 10,
-      color: C.textLight,
+      color: altMode ? "#6B6558" : C.textLight,
+      fontWeight: altMode ? 700 : 400,
       padding: "0 2px"
     }
-  }, drawMode ? "Kreslete půdorys prstem. Vypněte kreslení pro umístění přístrojů." : "Kliknutím do půdorysu přidáte / odeberete přístroj."), React.createElement(PlanCanvas, {
+  }, drawMode ? "Kreslete půdorys prstem. Vypněte kreslení pro umístění přístrojů." : altMode ? "Režim ALT: kliknutím přidáte / odeberete alternativní přístroj (šedý, písmena A, B, C…)." : "Kliknutím do půdorysu přidáte / odeberete přístroj."), React.createElement(PlanCanvas, {
     shape: _objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
     }),
     devices: devices,
     setDevices: setDevices,
+    altDevices: altDevices,
+    setAltDevices: setAltDevices,
+    altMode: altMode,
     reach: reach,
     zoom: zoom,
     drawMode: drawMode,
@@ -2848,6 +2931,7 @@ function PlanEditor(_ref10) {
 function PlansList(_ref16) {
   var _React7;
   var plans = _ref16.plans,
+    orderIndex = _ref16.orderIndex,
     onNew = _ref16.onNew,
     onOpen = _ref16.onOpen,
     onDelete = _ref16.onDelete,
@@ -2862,6 +2946,23 @@ function PlansList(_ref16) {
     var d = new Date(iso);
     return "".concat(d.getDate(), ".").concat(d.getMonth() + 1, ".").concat(d.getFullYear());
   };
+  var orderTag = function orderTag(plan) {
+    var o = plan.linkedOrderId && orderIndex ? orderIndex[plan.linkedOrderId] : null;
+    return o && o.num != null && o.year != null ? o : null;
+  };
+  var sortedPlans = useMemo(function () {
+    var linked = [];
+    var rest = [];
+    plans.forEach(function (p) {
+      (orderTag(p) ? linked : rest).push(p);
+    });
+    linked.sort(function (a, b) {
+      var oa = orderTag(a),
+        ob = orderTag(b);
+      return ob.year - oa.year || ob.num - oa.num;
+    });
+    return linked.concat(rest);
+  }, [plans, orderIndex]);
   return React.createElement("div", {
     style: {
       fontFamily: F,
@@ -3028,7 +3129,7 @@ function PlansList(_ref16) {
       color: C.textLight,
       fontSize: 13
     }
-  }, "Zatím žádné uložené plány. Vytvořte první!")].concat(_toConsumableArray(plans.map(function (plan) {
+  }, "Zatím žádné uložené plány. Vytvořte první!")].concat(_toConsumableArray(sortedPlans.map(function (plan) {
     var _plan$results, _plan$results2, _plan$customer, _plan$customer2, _React8, _plan$devices, _plan$customer3;
     var hasRes = !!((_plan$results = plan.results) !== null && _plan$results !== void 0 && _plan$results.humidityBefore || (_plan$results2 = plan.results) !== null && _plan$results2 !== void 0 && _plan$results2.humidityAfter);
     return React.createElement("div", {
@@ -3062,9 +3163,24 @@ function PlansList(_ref16) {
       style: {
         fontWeight: 700,
         fontSize: 14,
-        color: C.text
+        color: C.text,
+        display: "flex",
+        alignItems: "center",
+        gap: 6,
+        flexWrap: "wrap"
       }
-    }, ((_plan$customer = plan.customer) === null || _plan$customer === void 0 ? void 0 : _plan$customer.name) || "Bez jména"), ((_plan$customer2 = plan.customer) === null || _plan$customer2 === void 0 ? void 0 : _plan$customer2.city) && React.createElement("div", {
+    }, orderTag(plan) && React.createElement("span", {
+      style: {
+        background: C.greenPale,
+        border: "1px solid ".concat(C.green, "55"),
+        borderRadius: 6,
+        padding: "1px 6px",
+        fontSize: 11,
+        fontWeight: 800,
+        color: C.green,
+        whiteSpace: "nowrap"
+      }
+    }, "#".concat(orderTag(plan).num, "/").concat(orderTag(plan).year)), ((_plan$customer = plan.customer) === null || _plan$customer === void 0 ? void 0 : _plan$customer.name) || "Bez jména"), ((_plan$customer2 = plan.customer) === null || _plan$customer2 === void 0 ? void 0 : _plan$customer2.city) && React.createElement("div", {
       style: {
         fontSize: 11,
         color: C.textLight,
@@ -3362,6 +3478,29 @@ function App() {
     ready = _usePlans.ready,
     savePlan = _usePlans.savePlan,
     deletePlan = _usePlans.deletePlan;
+  var _useStateOI = useState({}),
+    _useStateOI2 = _slicedToArray(_useStateOI, 2),
+    orderIndex = _useStateOI2[0],
+    setOrderIndex = _useStateOI2[1];
+  useEffect(function () {
+    if (!user) {
+      setOrderIndex({});
+      return;
+    }
+    db.collection("users").doc(user.uid).collection("orders").get().then(function (snap) {
+      var idx = {};
+      snap.docs.forEach(function (d) {
+        var o = d.data() || {};
+        idx[d.id] = {
+          num: o.num,
+          year: o.year
+        };
+      });
+      setOrderIndex(idx);
+    }).catch(function (e) {
+      return console.error("Načtení indexu zakázek selhalo:", e);
+    });
+  }, [user]);
   var urlHandled = useRef(false);
   var initialEditorTabRef = useRef(null);
   var requestDriveAccess = function requestDriveAccess() {
@@ -3655,6 +3794,7 @@ function App() {
   }
   return React.createElement(PlansList, {
     plans: plans,
+    orderIndex: orderIndex,
     onNew: handleNew,
     onOpen: function onOpen(plan) {
       return setCurrentPlan(_objectSpread({}, plan));
