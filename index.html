@@ -516,7 +516,8 @@ function buildPlanCanvas(shape, devices, reach, altDevices) {
   ctx.font = "11px Arial";
   ctx.textAlign = "left";
   ctx.fillText("5 m", 12 + 5 * sc + 6, csize - 12);
-  ctx.fillText((altDevices || []).length > 0 ? "Kružnice zobrazuje účinný dosah přístroje · šedě (A, B…) alternativní pozice" : "Kružnice zobrazuje účinný dosah přístroje", 12, csize - 30);
+  ctx.fillText("Kružnice zobrazuje účinný dosah přístroje.", 12, csize - 46);
+  ctx.fillText("Zelené - doporučené umístění přístroje • šedé - alternativní umístění přístroje", 12, csize - 32);
   return {
     canvas: oc,
     cells: cells
@@ -2941,6 +2942,11 @@ function PlansList(_ref16) {
     _useState30 = _slicedToArray(_useState29, 2),
     delConfirm = _useState30[0],
     setDelConfirm = _useState30[1];
+  var nowYear = new Date().getFullYear();
+  var _useStateVY = useState(nowYear),
+    _useStateVY2 = _slicedToArray(_useStateVY, 2),
+    viewYear = _useStateVY2[0],
+    setViewYear = _useStateVY2[1];
   var fmtDate = function fmtDate(iso) {
     if (!iso) return "";
     var d = new Date(iso);
@@ -2954,15 +2960,14 @@ function PlansList(_ref16) {
     var linked = [];
     var rest = [];
     plans.forEach(function (p) {
-      (orderTag(p) ? linked : rest).push(p);
+      var t = orderTag(p);
+      if (t && t.year === viewYear) linked.push(p);else if (!t && viewYear === nowYear) rest.push(p);
     });
     linked.sort(function (a, b) {
-      var oa = orderTag(a),
-        ob = orderTag(b);
-      return ob.year - oa.year || ob.num - oa.num;
+      return orderTag(b).num - orderTag(a).num;
     });
     return linked.concat(rest);
-  }, [plans, orderIndex]);
+  }, [plans, orderIndex, viewYear]);
   return React.createElement("div", {
     style: {
       fontFamily: F,
@@ -3091,6 +3096,74 @@ function PlansList(_ref16) {
       gap: 12
     }
   },
+  // Year bar
+  React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 10,
+      padding: "8px 10px"
+    }
+  }, React.createElement("button", {
+    onClick: function onClick() {
+      return setViewYear(function (y) {
+        return y - 1;
+      });
+    },
+    style: {
+      padding: "6px 14px",
+      borderRadius: 7,
+      border: "1px solid ".concat(C.border),
+      background: C.surfaceAlt,
+      color: C.textMid,
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "‹"), React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: C.green,
+      minWidth: 90,
+      textAlign: "center"
+    }
+  }, "Rok: ".concat(viewYear)), React.createElement("button", {
+    onClick: function onClick() {
+      return setViewYear(function (y) {
+        return y + 1;
+      });
+    },
+    style: {
+      padding: "6px 14px",
+      borderRadius: 7,
+      border: "1px solid ".concat(C.border),
+      background: C.surfaceAlt,
+      color: C.textMid,
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "›"), viewYear !== nowYear && React.createElement("button", {
+    onClick: function onClick() {
+      return setViewYear(nowYear);
+    },
+    style: {
+      padding: "6px 12px",
+      borderRadius: 7,
+      border: "1px solid ".concat(C.green, "55"),
+      background: C.greenPale,
+      color: C.green,
+      fontSize: 12,
+      fontWeight: 700,
+      cursor: "pointer",
+      whiteSpace: "nowrap"
+    }
+  }, "Tento rok")),
   // New plan button
   React.createElement("button", {
     onClick: onNew,
@@ -3117,7 +3190,18 @@ function PlansList(_ref16) {
       color: C.textLight,
       paddingLeft: 2
     }
-  }, "".concat(plans.length, " uložen\xFDch pl\xE1nů")),
+  }, "".concat(sortedPlans.length, " pl\xE1nů \xB7 rok ").concat(viewYear)),
+  plans.length > 0 && sortedPlans.length === 0 && React.createElement("div", {
+    style: {
+      padding: 32,
+      textAlign: "center",
+      background: C.surface,
+      border: "1px solid ".concat(C.border),
+      borderRadius: 12,
+      color: C.textLight,
+      fontSize: 13
+    }
+  }, "Žádné plány pro rok ".concat(viewYear, ".")),
   // Plans list
   plans.length === 0 && React.createElement("div", {
     style: {
