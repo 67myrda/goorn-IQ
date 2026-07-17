@@ -2110,18 +2110,21 @@ function PlanEditor(_ref10) {
     style: {
       background: C.surface,
       borderBottom: "1px solid ".concat(C.border),
-      padding: "0 12px",
-      height: 52,
+      padding: "8px 12px",
+      minHeight: 52,
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
+      flexWrap: "wrap",
       gap: 8
     }
   }, React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
-      gap: 8
+      gap: 8,
+      flex: "1 1 auto",
+      minWidth: 0
     }
   }, React.createElement("button", {
     onClick: onBack,
@@ -2138,7 +2141,11 @@ function PlanEditor(_ref10) {
     style: {
       fontWeight: 800,
       fontSize: 13,
-      color: C.text
+      color: C.text,
+      minWidth: 0,
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+      textOverflow: "ellipsis"
     }
   }, customer.name || "Nový plán")), React.createElement("img", {
     src: LOGO_IQ,
@@ -2152,7 +2159,9 @@ function PlanEditor(_ref10) {
     style: {
       display: "flex",
       gap: 6,
-      alignItems: "center"
+      alignItems: "center",
+      flex: "1 1 auto",
+      justifyContent: "flex-end"
     }
   }, React.createElement("button", {
     onClick: handleSave,
@@ -2165,7 +2174,8 @@ function PlanEditor(_ref10) {
       color: isSaving ? C.green : "#fff",
       fontSize: 12,
       fontWeight: 700,
-      cursor: "pointer"
+      cursor: "pointer",
+      whiteSpace: "nowrap"
     }
   }, isSaving ? "Ukládám…" : "💾 Uložit"), React.createElement("button", {
     onClick: handlePDF,
@@ -2177,7 +2187,8 @@ function PlanEditor(_ref10) {
       color: "#fff",
       fontSize: 12,
       fontWeight: 700,
-      cursor: "pointer"
+      cursor: "pointer",
+      whiteSpace: "nowrap"
     }
   }, "↓ PDF"), React.createElement("button", {
     onClick: handleTiskovaSada,
@@ -2190,7 +2201,8 @@ function PlanEditor(_ref10) {
       color: generatingProtokol ? C.green : "#fff",
       fontSize: 12,
       fontWeight: 700,
-      cursor: "pointer"
+      cursor: "pointer",
+      whiteSpace: "nowrap"
     }
   }, generatingProtokol ? "Generuji…" : "🖨 Tisková sada"))),
   (protokolError || protokolPdf) && React.createElement("div", {
@@ -2863,17 +2875,21 @@ function PlansList(_ref16) {
     style: {
       background: C.surface,
       borderBottom: "1px solid ".concat(C.border),
-      padding: "0 14px",
-      height: 52,
+      padding: "8px 14px",
+      minHeight: 52,
       display: "flex",
       alignItems: "center",
-      justifyContent: "space-between"
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: 8
     }
   }, React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
-      gap: 10
+      gap: 10,
+      flex: "1 1 auto",
+      minWidth: 0
     }
   }, React.createElement("div", {
     style: {
@@ -2886,31 +2902,43 @@ function PlansList(_ref16) {
       justifyContent: "center",
       fontSize: 10,
       fontWeight: 800,
-      color: "#fff"
+      color: "#fff",
+      flexShrink: 0
     }
-  }, "IQ"), React.createElement("div", null, React.createElement("div", {
+  }, "IQ"), React.createElement("div", {
+    style: {
+      minWidth: 0
+    }
+  }, React.createElement("div", {
     style: {
       fontWeight: 800,
       fontSize: 14,
-      color: C.text
+      color: C.text,
+      whiteSpace: "nowrap"
     }
   }, "Goorn IQ Planner"), React.createElement("div", {
     style: {
       fontSize: 9,
-      color: C.textLight
+      color: C.textLight,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
     }
   }, "Plány rozmístění přístrojů"))), React.createElement("img", {
     src: LOGO_IQ,
     alt: "Goorn IQ Planner",
     style: {
       height: 34,
-      width: "auto"
+      width: "auto",
+      flexShrink: 0
     }
   }), React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
-      gap: 8
+      gap: 8,
+      flex: "1 1 auto",
+      justifyContent: "flex-end"
     }
   }, React.createElement("a", {
     href: "https://67myrda.github.io/goorn-zak/",
@@ -2925,7 +2953,8 @@ function PlansList(_ref16) {
       fontWeight: 600,
       cursor: "pointer",
       color: C.textMid,
-      textDecoration: "none"
+      textDecoration: "none",
+      whiteSpace: "nowrap"
     }
   }, "\uD83D\uDD17 Zakázky"), user.photoURL && React.createElement("img", {
     src: user.photoURL,
