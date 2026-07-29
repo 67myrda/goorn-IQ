@@ -20,6 +20,7 @@ input,textarea,button{font-family:inherit}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:#F2EEE6}
 ::-webkit-scrollbar-thumb{background:#D8D0BE;border-radius:3px}
+@media (max-width:640px){.iqp-header-logo{display:none}}
 </style>
 </head>
 <body>
@@ -1622,9 +1623,16 @@ var DRIVE_FOLDER_ID_SADA = "1WouU2KEZ2dnUHVYN7-wK0ueb113QVQdj";
 var DRIVE_FOLDER_ID_KATASTR = "1WyTayB93nRuD411fHQxxJwZ44EJJQVBm";
 var DRIVE_FOLDER_ID_ZAPIS = "1PDzqrfiyLEf9dMoPzwSaht5TWCGNjA9y";
 var DRIVE_FOLDER_ID_PROTOKOL = "18UBqvNgwPOGSlto9zgNDx5WUmskZuMYO";
+function driveAppLink(url) {
+  if (!url) return url;
+  var m = /^https:\/\/drive\.google\.com\/file\/d\/([^/]+)\//.exec(url);
+  if (!m) return url;
+  var fileId = m[1];
+  return "intent://drive.google.com/file/d/" + fileId + "/view#Intent;scheme=https;package=com.google.android.apps.docs;S.browser_fallback_url=" + encodeURIComponent(url) + ";end";
+}
 function driveDocBaseName(orderIndex, linkedOrderId, customer, typeLabel) {
   var idx = linkedOrderId && orderIndex ? orderIndex[linkedOrderId] : null;
-  var tag = idx && idx.num != null && idx.year != null ? "#" + idx.num + "/" + String(idx.year).slice(-2) + " " : "";
+  var tag = idx && idx.num != null && idx.year != null ? idx.num + "-" + String(idx.year).slice(-2) + " " : "";
   var surname = ((customer && customer.name) || "").trim().split(/\s+/)[0] || "";
   var obec = (((customer && customer.city) || "").split(",")[0] || "").trim();
   var rest = [surname, obec].filter(Boolean).join(" ");
@@ -1822,7 +1830,7 @@ function ImageUploadSlot(props) {
       border: "1px solid " + C.green
     }
   }, React.createElement("a", {
-    href: value.link,
+    href: driveAppLink(value.link),
     target: "_blank",
     rel: "noopener",
     style: {
@@ -1988,22 +1996,7 @@ function LinkSection(_ref0) {
       color: C.greenBright,
       flex: 1
     }
-  }, "\uD83D\uDD17 ", linkedInfo ? "".concat(linkedInfo.name).concat(linkedInfo.city ? " · " + linkedInfo.city : "") : "Propojeno"), React.createElement("a", {
-    href: "https://67myrda.github.io/goorn-zak/?openOrder=".concat(encodeURIComponent(linkedOrderId)),
-    target: "_blank",
-    rel: "noopener",
-    title: "Otevřít v Zakázkách",
-    style: {
-      fontSize: 11,
-      fontWeight: 600,
-      color: C.greenBright,
-      background: "transparent",
-      border: "none",
-      cursor: "pointer",
-      textDecoration: "underline",
-      whiteSpace: "nowrap"
-    }
-  }, "\uD83D\uDCCB Zakázka"), React.createElement("button", {
+  }, "\uD83D\uDD17 ", linkedInfo ? "".concat(linkedInfo.name).concat(linkedInfo.city ? " · " + linkedInfo.city : "") : "Propojeno"), React.createElement("button", {
     onClick: function onClick() {
       return setShowPicker(true);
     },
@@ -2468,7 +2461,25 @@ function PlanEditor(_ref10) {
       cursor: "pointer",
       color: C.textMid
     }
-  }, "← Zpět"), React.createElement("div", {
+  }, "← Zpět"), linkedOrderId && React.createElement("a", {
+    href: "https://67myrda.github.io/goorn-zak/?openOrder=".concat(encodeURIComponent(linkedOrderId)),
+    target: "_blank",
+    rel: "noopener",
+    title: "Otevřít v Zakázkách",
+    style: {
+      padding: "6px 10px",
+      borderRadius: 7,
+      border: "1px solid ".concat(C.greenBright),
+      background: C.greenPale,
+      color: C.greenBright,
+      fontSize: 12.5,
+      fontWeight: 700,
+      cursor: "pointer",
+      textDecoration: "none",
+      whiteSpace: "nowrap",
+      flexShrink: 0
+    }
+  }, "🔗 Zakázka"), React.createElement("div", {
     style: {
       fontWeight: 800,
       fontSize: 13,
@@ -2481,6 +2492,7 @@ function PlanEditor(_ref10) {
   }, customer.name || "Nový plán")), React.createElement("img", {
     src: LOGO_IQ,
     alt: "Goorn IQ Planner",
+    className: "iqp-header-logo",
     style: {
       height: 28,
       width: "auto",
@@ -2545,10 +2557,11 @@ function PlanEditor(_ref10) {
       color: protokolError ? C.danger : C.greenBright,
       display: "flex",
       alignItems: "center",
+      justifyContent: "flex-end",
       gap: 8
     }
   }, protokolError ? "⚠️ " + protokolError : React.createElement("a", {
-    href: protokolPdf.link,
+    href: driveAppLink(protokolPdf.link),
     target: "_blank",
     rel: "noopener",
     style: {
@@ -2566,10 +2579,11 @@ function PlanEditor(_ref10) {
       color: simplePdfError ? C.danger : C.greenBright,
       display: "flex",
       alignItems: "center",
+      justifyContent: "flex-end",
       gap: 8
     }
   }, simplePdfError ? "⚠️ " + simplePdfError : React.createElement("a", {
-    href: simplePdfResult.link,
+    href: driveAppLink(simplePdfResult.link),
     target: "_blank",
     rel: "noopener",
     style: {
