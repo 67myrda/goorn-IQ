@@ -2983,18 +2983,58 @@ function PlanEditor(_ref10) {
       k = _ref13[0],
       label = _ref13[1],
       ph = _ref13[2];
+    if (k !== "city") {
+      return React.createElement("div", {
+        key: k
+      }, React.createElement("span", {
+        style: lbl
+      }, label), React.createElement("input", {
+        value: customer[k] || "",
+        onChange: function onChange(e) {
+          return setCust(k, e.target.value);
+        },
+        placeholder: ph,
+        style: inp
+      }));
+    }
     return React.createElement("div", {
       key: k
     }, React.createElement("span", {
       style: lbl
-    }, label), React.createElement("input", {
+    }, label), React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        alignItems: "center"
+      }
+    }, React.createElement("input", {
       value: customer[k] || "",
       onChange: function onChange(e) {
         return setCust(k, e.target.value);
       },
       placeholder: ph,
-      style: inp
-    }));
+      style: _objectSpread(_objectSpread({}, inp), {}, {
+        flex: 1
+      })
+    }), React.createElement("a", {
+      href: "https://nahlizenidokn.cuzk.gov.cz/VyberBudovu/Stavba/InformaceO",
+      target: "_blank",
+      rel: "noopener",
+      title: "Otevřít Katastr nemovitostí",
+      style: {
+        flexShrink: 0,
+        width: 38,
+        height: 38,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 7,
+        border: "1px solid ".concat(C.border),
+        background: C.surfaceAlt,
+        fontSize: 17,
+        textDecoration: "none"
+      }
+    }, "\uD83C\uDFDB\uFE0F")));
   })), [
   React.createElement("div", {
     key: "notes"
