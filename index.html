@@ -138,7 +138,9 @@ function usePlans(userId) {
     if (!userId) return;
     var unsub = db.collection("users").doc(userId).collection("iq_plans").orderBy("updatedAt", "desc").onSnapshot(function (snap) {
       setPlans(snap.docs.map(function (d) {
-        return d.data();
+        return _objectSpread(_objectSpread({}, d.data()), {}, {
+          id: d.id
+        });
       }));
       setReady(true);
     }, function (err) {
