@@ -2299,6 +2299,34 @@ function PlanEditor(_ref10) {
       return _objectSpread(_objectSpread({}, r), {}, _defineProperty({}, k, v));
     });
   };
+  // Sledování "rozpracováno" (dirty stav) — otisk dat platný pro tlačítko Uložit
+  var currentSnapshot = useMemo(function () {
+    return JSON.stringify({
+      shape: shape,
+      drawnCells: drawnCells,
+      devices: devices,
+      altDevices: altDevices,
+      reach: reach,
+      customer: customer,
+      results: results,
+      linkedOrderId: linkedOrderId
+    });
+  }, [shape, drawnCells, devices, altDevices, reach, customer, results, linkedOrderId]);
+  var _useStateSavedSnap = useState(function () {
+      return currentSnapshot;
+    }),
+    _useStateSavedSnap2 = _slicedToArray(_useStateSavedSnap, 2),
+    savedSnapshot = _useStateSavedSnap2[0],
+    setSavedSnapshot = _useStateSavedSnap2[1];
+  var wasSavingRef = useRef(isSaving);
+  useEffect(function () {
+    if (wasSavingRef.current && !isSaving) {
+      // Uložení právě doběhlo — nový otisk se stává výchozím stavem
+      setSavedSnapshot(currentSnapshot);
+    }
+    wasSavingRef.current = isSaving;
+  }, [isSaving, currentSnapshot]);
+  var isDirty = currentSnapshot !== savedSnapshot;
   var cells = useMemo(function () {
     return getBuildingCells(_objectSpread(_objectSpread({}, shape), {}, {
       cells: drawnCells
@@ -2511,11 +2539,12 @@ function PlanEditor(_ref10) {
   }, React.createElement("button", {
     onClick: handleSave,
     disabled: isSaving,
+    title: isSaving ? "Ukládání probíhá" : isDirty ? "Máš neuložené změny" : "Nic nového k uložení",
     style: {
       padding: "7px 14px",
       borderRadius: 7,
       border: "none",
-      background: isSaving ? C.greenPale : C.green,
+      background: isSaving ? C.greenPale : isDirty ? C.green : C.danger,
       color: isSaving ? C.green : "#fff",
       fontSize: 12,
       fontWeight: 700,
