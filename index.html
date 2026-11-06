@@ -378,7 +378,7 @@ function buildPlanCanvas(shape, devices, reach, altDevices) {
   // Dynamický scale — budova + kružnice dosahu se vejdou do dostupné plochy
   var csize = 700;
   var plotW = csize;
-  var plotH = csize;
+  var plotH = csize - 112; // místo dole pro čitelnou legendu
   var effectiveW = bW + 2 * reach + 4;
   var effectiveH = bH + 2 * reach + 4;
   var sc = Math.min(plotW / effectiveW, plotH / effectiveH);
@@ -513,14 +513,56 @@ function buildPlanCanvas(shape, devices, reach, altDevices) {
     ctx.textBaseline = "middle";
     ctx.fillText(i + 1, px, py);
   });
-  ctx.fillStyle = "#487A4C";
-  ctx.fillRect(12, csize - 20, 5 * sc, 3);
-  ctx.fillStyle = "#9C9080";
-  ctx.font = "11px Arial";
+  // ── Legenda (velká, barevná, čitelná i po tisku) ──
+  var hasAlt = (altDevices || []).length > 0;
+  var legH = hasAlt ? 112 : 88;
+  ctx.fillStyle = "rgba(255,255,255,0.94)";
+  ctx.fillRect(6, csize - legH - 4, csize - 12, legH);
+  ctx.strokeStyle = "#D9D2C5";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(6.5, csize - legH - 3.5, csize - 13, legH - 1);
   ctx.textAlign = "left";
-  ctx.fillText("5 m", 12 + 5 * sc + 6, csize - 12);
-  ctx.fillText("Kružnice zobrazuje účinný dosah přístroje", 12, csize - 46);
-  ctx.fillText("Zelená (1, 2, 3...) - doporučené umístění přístroje" + ((altDevices || []).length > 0 ? " • Šedá (A, B, C...) alternativní umístění přístroje" : ""), 12, csize - 32);
+  ctx.textBaseline = "middle";
+  var legY = csize - legH + 12;
+  ctx.fillStyle = "#4A4338";
+  ctx.font = "16px Arial";
+  ctx.fillText("Kružnice zobrazuje účinný dosah přístroje (" + reach + " m)", 16, legY);
+  var legendRow = function legendRow(y, color, dashed, mark, name, rest) {
+    ctx.beginPath();
+    ctx.arc(30, y, 11, 0, Math.PI * 2);
+    ctx.fillStyle = color + "18";
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(dashed ? [4, 3] : []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(30, y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 9px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(mark, 30, y + 0.5);
+    ctx.textAlign = "left";
+    ctx.fillStyle = color;
+    ctx.font = "bold 17px Arial";
+    ctx.fillText(name, 50, y);
+    var nw = ctx.measureText(name).width;
+    ctx.fillStyle = "#4A4338";
+    ctx.font = "16px Arial";
+    ctx.fillText(rest, 50 + nw + 6, y);
+  };
+  legendRow(legY + 26, "#3A7D3E", false, "1", "Zelená kružnice (1, 2, 3…)", "= doporučené umístění přístroje");
+  if (hasAlt) legendRow(legY + 52, "#6B6558", true, "A", "Šedá kružnice (A, B, C…)", "= alternativní umístění přístroje");
+  ctx.fillStyle = "#487A4C";
+  ctx.fillRect(12, csize - legH + (hasAlt ? 78 : 52), 5 * sc, 3);
+  ctx.fillStyle = "#6B6558";
+  ctx.font = "14px Arial";
+  ctx.textBaseline = "middle";
+  ctx.fillText("5 m", 12 + 5 * sc + 8, csize - legH + (hasAlt ? 79 : 53));
+  ctx.textBaseline = "alphabetic";
   return {
     canvas: oc,
     cells: cells
@@ -544,7 +586,25 @@ function buildInfoTextCanvas(customer, results, cells, devices, reach, logoImg) 
   if (customer.name) {
     tctx.fillStyle = "#3A7D3E";
     tctx.font = "bold 20px Arial";
-    tctx.fillText("Z\xE1kazn\xEDk: ".concat(customer.name).concat(customer.city ? " · " + customer.city : ""), 16, ty);
+    var addrFull = (customer.city || "").trim();
+    var addrM = addrFull.match(/^(.*?,)\s*(\d{3}\s?\d{2}\b.*)$/) || addrFull.match(/^([^,]*,)\s*(.+)$/);
+    var addrL1 = addrM ? addrM[1].trim() : addrFull;
+    var addrL2 = addrM ? addrM[2].trim() : "";
+    var hdrMaxW = tc.width - 32;
+    var fitLine = function fitLine(txt, y) {
+      var px = 20;
+      tctx.font = "bold " + px + "px Arial";
+      while (px > 12 && tctx.measureText(txt).width > hdrMaxW) {
+        px--;
+        tctx.font = "bold " + px + "px Arial";
+      }
+      tctx.fillText(txt, 16, y);
+    };
+    fitLine("Z\xE1kazn\xEDk: ".concat(customer.name).concat(addrL1 ? " · " + addrL1 : ""), ty);
+    if (addrL2) {
+      ty += 25;
+      fitLine(addrL2, ty);
+    }
     ty += 28;
     tctx.fillStyle = "#685E52";
     tctx.font = "15px Arial";
@@ -561,7 +621,7 @@ function buildInfoTextCanvas(customer, results, cells, devices, reach, logoImg) 
     tctx.fillStyle = "#685E52";
     tctx.font = "14px Arial";
     ty += 4;
-    ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(customer.notes), 16, ty, tc.width - 32, 18, 3);
+    ty = wrapCanvasText(tctx, "Pozn\xE1mka: ".concat(customer.notes), 16, ty, tc.width - 32, 18, 6);
   }
   ty += 8;
   tctx.fillStyle = "#7A6249";
